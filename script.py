@@ -948,7 +948,7 @@ z= gen()
 
 
         
-filename
+filename = 'setting1.xlsx'
 
 from openpyxl import load_workbook
 
@@ -981,21 +981,21 @@ for *c, in cells:
         points_new.append(c[1].value)
         last_point = c[1].value
         verbs_new[c[1].value] = []
-        verbs_new[c[1].value].append(c[2].value)
+        verbs_new[c[1].value].append(c[2].value) #verbs[point]
         headers_name[c[1].value] = []
-        headers_name[c[1].value].append(c[3].value)
+        headers_name[c[1].value].append(c[3].value) #headers[point]
         headers_value[c[1].value] = {}
-        headers_value[c[1].value][c[3].value] = c[4].value
+        headers_value[c[1].value][c[3].value] = c[4].value #headers_value[point][header_name]
         url_new[c[1].value] = []
-        url_new[c[1].value].append(c[5].value)
+        url_new[c[1].value].append(c[5].value) #url[point]
         if c[6].value is not None:
             data_new[c[1].value] = []
-            data_new[c[1].value].append(c[6].value)
+            data_new[c[1].value].append(c[6].value) #data[point]
             print('data type', type(c[6].value))
         response_code[c[1].value] = {}
-        response_code[c[1].value][c[2].value] = c[7].value
+        response_code[c[1].value][c[2].value] = c[7].value  #response_code[point][verb]
         response_new[c[1].value] = {}
-        response_new[c[1].value][c[2].value] = c[8].value
+        response_new[c[1].value][c[2].value] = c[8].value   #response_code[point][verb]
         
     else:
         if c[2].value is not None:
@@ -1045,37 +1045,38 @@ workbook = xlsxwriter.Workbook('response.xlsx')
 worksheet = workbook.add_worksheet('response')
 i = 1
 j = 1    
-# print('ok1')
+print('ok1')
 for point in points_new:
     worksheet.write( i, j, point)
     i1 = i
-    # print('ok2')
+    print('ok2')
     for verb in verbs_new[point]:
+        print('ok21')
+        
         print(verb)
+        
         worksheet.write( i1, j+1, verb)
-        print(data_new[point].get(verb, 0))
-        worksheet.write( i, j+5, data_new[point].get(verb, 0) )
-        worksheet.write( i, j+6, response_code[point].get(verb, 0) )
-        worksheet.write( i, j+7, response_new[point].get(verb, 0) )
+        worksheet.write( i1, j+6, response_code[point].get(verb, 0) )
+        worksheet.write( i1, j+7, response_new[point].get(verb, 0) )
+        print('ok22')
         
         i1 = i1 + 1
+    print('ok23')
     worksheet.write( i, j+2, *url_new[point])
+    print('ok24')
+    if data_new.get(point,0)
+        worksheet.write( i, j+5, *data_new.get(point,'') )
+    
     i2 = i
-    # print('ok3')
+    print('ok3')
     for h in headers_name[point]:
         print(h)
         worksheet.write( i2, j+3, h)
         worksheet.write( i2, j+4, headers_value[point][h])
         i2 = i2 + 1
-    # print('ok4')
+    print('ok4')
     i3 = i
-    # for r in response_new[point]:
-    #     print()
-
-    #     worksheet.write( i3, j+6, r)
-                        
-    #     i3 = i3 + 1
-    # print('ok5')
+  
     print('i, i+2, i1,i2,i3', i, i+2, i1,i2,i3)
     i = max(i+1, i1, i2, i3) + 1
 workbook.close()
