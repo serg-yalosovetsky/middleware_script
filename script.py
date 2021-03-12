@@ -1,4 +1,5 @@
 from json.decoder import JSONDecodeError
+from typing import Dict
 import aiohttp
 import requests, asyncio
 
@@ -427,8 +428,68 @@ for j in log[i]:
     t = ws_name.index(temp[0])
     for n in range(7):
         worksheets[t].write( row[t], n+1, str(temp[n]))
-    
-    workbook,worksheet = write_to_excel(resp,verbose=3, current_worksheet=sett, workbook=workbook,x0=0,y0=3)
+
+    if simple:
+        worksheets[t].write( row[t], 8, str(temp[7]))  
+    else:
+        if ifDict(temp[7]):
+            for k,v in temp[7].items():    
+                
+                if ifDict(v):
+                    for l,b in v.items():    
+                        worksheets[t].write( row[t], 8, str(l) )
+                        worksheets[t].write( row[t], 9, str(b) )
+                        worksheets[t].write( row[t], 10, 'dict dict' )
+                        
+                        row[t]+=1
+                elif ifList(v):
+                    for l in v:    
+                        
+                        if ifDict(l):
+                            for m,c in l.items():    
+                                worksheets[t].write( row[t], 8, str(m) )
+                                worksheets[t].write( row[t], 9, str(c) )
+                                worksheets[t].write( row[t], 10, 'dict list dict' )
+                                
+                                row[t]+=1
+                        else:
+                            worksheets[t].write( row[t], 8, str(l) )
+                            worksheets[t].write( row[t], 10, 'dict list esle' )
+                            row[t]+=1
+                else:
+                    print(k)
+                    print('dict else')       
+                    worksheets[t].write( row[t], 8, str(k) )
+                    worksheets[t].write( row[t], 9, str(v) )
+                    worksheets[t].write( row[t], 10, 'dict else' )
+                    
+                    row[t]+=1
+        else:
+            for k in temp[7]:
+                
+                if ifDict(k):
+                    for l,v in k.items():    
+                        worksheets[t].write( row[t], 8, str(l) )
+                        worksheets[t].write( row[t], 9, str(v) )
+                        worksheets[t].write( row[t], 10, 'else dict' )
+                        
+                        row[t]+=1
+                elif ifList(k):
+                    for l in k:    
+                        worksheets[t].write( row[t], 8, str(l) )
+                        if ifDict(l):
+                            worksheets[t].write( row[t], 10, 'else list dict' )
+                        else:
+                            worksheets[t].write( row[t], 10, 'else list else' )
+                            
+                        row[t]+=1
+                else:  
+                    print(k)
+                    print('else')       
+                    worksheets[t].write( row[t], 8, str(k) )
+                    worksheets[t].write( row[t], 10, 'else else' )
+                    
+                    row[t]+=1
 
     row[t]+=1
     # print(log[0][i], 'd,e,f', d,e, a)
@@ -441,154 +502,10 @@ workbook.close()
 token = fetchToken()
 
 verbs = ['get', 'post']
-point = 'links'
-header = header_creator(point,token)
-url = url_creator(point)
-r = requests.get(url,headers = header)
-resp = r.json()
 describe = 5
-filename = 'setting.xlsx'
-
-example = [1,2,[2,3, [4, {5: {3:4,1:2,5:[6,7]}}, [ {7:8, 9:[10,11] },6 ], 4], 5], {1:2, 2:[3,4, {5:6} ] }, 8]
-
-def parse_str(s,n=0, dic=0, verbose=10):
-    if isType(s)<2 or verbose<=0:
-        yield (s,n,dic)
-    if isType(s)==2 and verbose>0:
-        n+=1
-        verbose-=1
-        for c in s:
-            yield from parse_str(c, n,dic,verbose)
-        n-=1
-        print()
-    if isType(s)==3 and verbose>0:
-        dic +=1
-        verbose-=1
-        for c in s:
-            yield (c,n,dic-1)
-            yield from parse_str(s[c], n, dic,verbose)
-        dic -=1
-example = [1,2,[12,13, [24, {35: {43:4,41:2,45:[56,57]}}, [ {67:8, 69:[70,11] },56 ], 44], 5], {31:2, 32:[43,4, {55:6} ] }, 28]
-
-workbook = xlsxwriter.Workbook(filename)
-sett = workbook.add_worksheet('settings')
-
-write_to_excel(resp, filename,verbose=3, new_worksheet='testings',x0=2,y0=0)
-workbook,worksheet,i = write_to_excel(resp,verbose=3, current_worksheet=sett, workbook=workbook,x0=0,y0=3)
-workbook.close()
+filename = 'settings.xlsx'
 
 
-
-def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',x0=0,y0=0):
-    '''Функция для красивого вывода ответа на запрос в файл екселя
-    '''
-    g = parse_str(resp,verbose=verbose)
-    # next(g)
-    if workbook=='':
-        workbook = xlsxwriter.Workbook(filename)
-        need_close = 1
-    else:
-        need_close =0
-        
-        
-    if current_worksheet=='':
-        sett = workbook.add_worksheet(new_worksheet)
-    else:
-        sett = current_worksheet
-    # bold = workbook.add_format({'bold': True})
-    border = workbook.add_format()
-    border.set_border(style=1)
-
-    border_no_top = workbook.add_format()
-    border_no_top.set_bottom()
-    border_no_top.set_left()
-    border_no_top.set_right()
-    border_no_topright = workbook.add_format()
-    border_no_topright.set_border(style =3)
-    border_no_topright.set_bottom()
-    border_no_topright.set_left()
-    border_no_left = workbook.add_format()
-    border_no_left.set_border(style =3)
-    border_no_left.set_bottom()
-    border_no_left.set_top()
-    border_no_left.set_right()
-    border_no_right = workbook.add_format()
-    border_no_right.set_border(style =3)
-    border_no_right.set_bottom()
-    border_no_right.set_top()
-    border_no_right.set_left()
-    border_no_bottom = workbook.add_format()
-    border_no_bottom.set_top()
-    border_no_bottom.set_left()
-    border_no_bottom.set_right()
-    border_no_bottomleft = workbook.add_format()
-    border_no_bottomleft.set_border(style =3)
-    border_no_bottomleft.set_top()
-    border_no_bottomleft.set_right()
-
-    try:
-        i=0
-        d_prev=0
-        s_prev=''
-        q=0
-        border_prev = ''
-        while True:
-            s,n,d =next(g)
-            d+=y0
-            if i==0:
-                d_prev=d
-                n_prev=n
-            if q==0:
-                i =x0
-                # d+=y0
-                d_prev=d
-                i_prev=i
-            print('n=',n,'| s=',s,' |d=',d)
-            if d>d_prev:
-                i-=1
-                print('-1', s)
-            
-            if n == n_prev and q>0: #если уровень списка одинаков для текущего и предыдущего
-                if d==d_prev: #если уровень словаря одинаков для текущего и предыдущего
-                    if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottomleft)
-                    else: #иначе устанавливаем только  "без нижней"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottom)
-
-                    sett.write(i, d, str(s),border_no_top)
-                    border_prev = 'no top' #устанавливаем "без верхней " для текущей
-                    q+=1
-                elif d>d_prev:
-                    if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_topright)
-                    else: #иначе устанавливаем только "без правой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_right)
-                    sett.write(i, d, str(s),border_no_left)
-                    border_prev = 'no left'
-                    q+=1
-                else:
-                    sett.write(i, d, str(s))
-                    border_prev = ''
-                    q+=1
-            else:
-                sett.write(i, d, str(s))
-                border_prev = ''
-                q+=1
-            
-            d_prev = d
-            i_prev = i
-            n_prev = n
-            s_prev = s
-            i+=1
-    except Exception as e:
-        print(e)
-    finally:
-        if need_close:
-            workbook.close()
-        return (workbook,sett,i-x0)
-
-filename
-resp
 debug = 0
 describe = 4
 workbook = xlsxwriter.Workbook(filename)
@@ -627,10 +544,8 @@ for point in points:
         # l = 0
         # if ifLD(resp): #респ - словарь или список
             # sett.write(i+1+j+l, 8, 'list or dict')
-        workbook,sett,resp_counter = write_to_excel(resp,verbose=2, current_worksheet=sett, workbook=workbook,x0=point_counter + verbs_counter + 1,y0=8)
-        # verbs_counter = writing_structure_in_excel(sett, resp, describe, point_counter=point_counter, verbs_counter=verbs_counter, debug=debug)
-        verbs_counter+=resp_counter+1
-    point_counter = point_counter  + max(verbs_counter, heads_counter)                        
+        verbs_counter = writing_structure_in_excel(sett, resp, describe, point_counter=point_counter, verbs_counter=verbs_counter, debug=debug)
+    point_counter = point_counter + 1 + max(verbs_counter, heads_counter)                        
 
 workbook.close()
 
@@ -789,6 +704,42 @@ def verbose_writing(sett, res2, index, counters, resp_counter):
                 resp_counter +=1
     return resp_counter
 
+point = 'settings'
+verb ='get'
+url = url_creator(point)
+token = fetchToken()
+header = header_creator(point, token)
+r = requests.request(method = verb, url= url, headers=header)
+resp = r.json()
+resp =_
+example = [{'a':[1,2],'b':{3}},{'w':{'q':4}}]
+print(str(example))
+print(repr(example))
+def parse_str(s):
+    for c in s:
+        if c=='[':
+            pass
+        if c=='{':
+            print()
+        # if 
+
+example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':5}}]
+
+def parse_str(s,n, pre=' ', dic=0):
+    if isType(s)<2:
+        yield (n,s,dic)
+    if isType(s)==2:
+        for c in s:
+            yield from parse_str(c, n+1, ' ',dic)
+        print()
+    if isType(s)==3:
+        for c in s:
+            yield (n+1,c,dic)
+            yield from parse_str(s[c], n, pre+' ', dic+1)
+        dic -=1
+    
+g = parse_str(resp, 1)
+print(next(g))
 
 
 q = 3.21
@@ -800,7 +751,38 @@ r = requests.request(verb, url, headers = header )
 r
 r.json()
 resp = r.json()
+filename = 'testings.xlsx'
+example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':{'r':5,'t':6},'t':[6,7,8]},'y':9 },5]
 
+
+g = parse_str(example, 1)
+workbook = xlsxwriter.Workbook(filename)
+sett = workbook.add_worksheet('testings')
+bold = workbook.add_format({'bold': True})
+try:
+    i=0
+    d_prev=0
+    while True:
+        n,s,d =next(g)
+        if i==0:
+            d_prev=d
+            n_prev=n
+        print('n=',n,'| s=',s,' |d=',d)
+        if d>d_prev:
+            i-=1
+            print('-1', s)
+            
+        if n>n_prev:
+            sett.write(i, d, str(s),bold)
+        else:
+            sett.write(i, d, str(s))
+        d_prev = d
+        n_prev = n
+        i+=1
+except Exception as e:
+    print(e)
+finally:
+    workbook.close()
 
 
 def checkArray(el): #0 str, 1 list, 2 dict, 3 listdict, 4 listlist, 5 dictlist, 6 dictdict
@@ -921,8 +903,7 @@ def deconv3(el, l):
     elif isType(el)==2:
         if checkArray(el)>=2:
 
-          
-d = {'key': ' AnimGetGift2_2', 'groups': ['MYVF-WIDGET'], 'link': 'Неправильно!'}        
+            
 list(d)
 dict2list(d)
 
@@ -940,22 +921,20 @@ while True:
 
 
 
-def gen():
-    yield from x, y
 
 next(z)    
 z= gen()
 
 
         
-filename = 'setting1.xlsx'
+filename
 
 from openpyxl import load_workbook
 
 wb = load_workbook(filename = filename)
 sheet = wb.active
 
-cells = sheet['A1': 'M40']
+cells = sheet['A1': 'H40']
 cells.values
 c = [0 for i in range(9)]
 type(c)
@@ -966,7 +945,6 @@ verbs_new = {}
 headers_name = {}
 headers_value = {}
 url_new = {}
-data_new = {}
 response_new = {}
 response_code = {}
 new_token =0
@@ -977,25 +955,21 @@ for *c, in cells:
     i +=1
     if i==1:
         continue
-    if c[1].value is not None:
+    if c[0].value is not None:
         points_new.append(c[1].value)
         last_point = c[1].value
         verbs_new[c[1].value] = []
-        verbs_new[c[1].value].append(c[2].value) #verbs[point]
+        verbs_new[c[1].value].append(c[2].value)
         headers_name[c[1].value] = []
-        headers_name[c[1].value].append(c[3].value) #headers[point]
+        headers_name[c[1].value].append(c[3].value)
         headers_value[c[1].value] = {}
-        headers_value[c[1].value][c[3].value] = c[4].value #headers_value[point][header_name]
+        headers_value[c[1].value][c[3].value] = c[4].value
         url_new[c[1].value] = []
-        url_new[c[1].value].append(c[5].value) #url[point]
-        if c[6].value is not None:
-            data_new[c[1].value] = []
-            data_new[c[1].value].append(c[6].value) #data[point]
-            print('data type', type(c[6].value))
+        url_new[c[1].value].append(c[5].value)
         response_code[c[1].value] = {}
-        response_code[c[1].value][c[2].value] = c[7].value  #response_code[point][verb]
+        response_code[c[1].value][c[2].value] = c[6].value
         response_new[c[1].value] = {}
-        response_new[c[1].value][c[2].value] = c[8].value   #response_code[point][verb]
+        response_new[c[1].value][c[2].value] = c[7].value
         
     else:
         if c[2].value is not None:
@@ -1014,32 +988,30 @@ for *c, in cells:
         if c[5].value is not None:
             url_new[last_point].append(c[5].value)
         if c[6].value is not None:
-            data_new[c[1].value].append(c[6].value)
-            print('data type', type(c[6].value))
-        if c[7].value is not None:
             response_code[last_point][c[2].value] = c[6].value
-        if c[8].value is not None:
+        if c[7].value is not None:
             response_new[last_point][c[2].value] = c[7].value
-
+        
 points_new
 verbs_new 
 headers_name 
+headers_value['settings']
 headers_value
 url_new 
 response_new
 response_code
-data_new
+
 token = fetchToken()
 
 worksheets = []
 row = []
-simple_worksheets = 0
-ws_name = [] #worksheets name
-if simple_worksheets:
-    for point in points_new:
-        ws_name.append(point)
-        worksheets.append(workbook.add_worksheet(point) )
-        row.append(0)
+simple = 0
+ws_name = []
+for point in points_new:
+    ws_name.append(point)
+    worksheets.append(workbook.add_worksheet(point) )
+    row.append(0)
+
 
 workbook = xlsxwriter.Workbook('response.xlsx')
 worksheet = workbook.add_worksheet('response')
@@ -1048,26 +1020,27 @@ j = 1
 print('ok1')
 for point in points_new:
     worksheet.write( i, j, point)
+    worksheet.write( i, j+5, str(data_new))
     i1 = i
     print('ok2')
     for verb in verbs_new[point]:
-        print('ok21')
-        
-        print(verb)
-        
         worksheet.write( i1, j+1, verb)
-        worksheet.write( i1, j+6, response_code[point].get(verb, 0) )
-        worksheet.write( i1, j+7, response_new[point].get(verb, 0) )
-        print('ok22')
-        
-        
+        try:
+            if verb=='post':
+                r = requests.request(verb, url, headers=header, data=data_new)
+            else:
+                r = requests.request(verb, url, headers=header)
+            resp = r.json()
+        except Exseption as e:
+            print(e)
+            resp = r.text
+        worksheet.write( i1, j+6, str(r) )
+        print(resp)
+        worksheet.write( i1, j+7, str(resp) )
+
+
         i1 = i1 + 1
-    print('ok23')
     worksheet.write( i, j+2, *url_new[point])
-    print('ok24')
-    if data_new.get(point,0)
-        worksheet.write( i, j+5, *data_new.get(point,'') )
-    
     i2 = i
     print('ok3')
     for h in headers_name[point]:
@@ -1077,7 +1050,9 @@ for point in points_new:
         i2 = i2 + 1
     print('ok4')
     i3 = i
-  
+
+    print('ok5')
+
     print('i, i+2, i1,i2,i3', i, i+2, i1,i2,i3)
     i = max(i+1, i1, i2, i3) + 1
 workbook.close()
