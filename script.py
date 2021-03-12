@@ -1060,6 +1060,7 @@ for point in points_new:
         worksheet.write( i1, j+7, response_new[point].get(verb, 0) )
         print('ok22')
         
+        
         i1 = i1 + 1
     print('ok23')
     worksheet.write( i, j+2, *url_new[point])
