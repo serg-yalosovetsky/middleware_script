@@ -924,82 +924,95 @@ while True:
 
 next(z)    
 z= gen()
-
-
-        
-filename
-
 from openpyxl import load_workbook
 
-wb = load_workbook(filename = filename)
-sheet = wb.active
-
-cells = sheet['A1': 'H40']
-cells.values
-c = [0 for i in range(9)]
-type(c)
-t = (c[0], c[1], c[2])
-
-points_new = []
-verbs_new = {}
-headers_name = {}
-headers_value = {}
-url_new = {}
-response_new = {}
-response_code = {}
-new_token =0
-
-i = 0
-for *c, in cells:  
-    # print(c[0].value, c[1].value, c[2].value, c[3].value, c[4].value, c[5].value, c[6].value, c[7].value)
-    i +=1
-    if i==1:
-        continue
-    if c[0].value is not None:
-        points_new.append(c[1].value)
-        last_point = c[1].value
-        verbs_new[c[1].value] = []
-        verbs_new[c[1].value].append(c[2].value)
-        headers_name[c[1].value] = []
-        headers_name[c[1].value].append(c[3].value)
-        headers_value[c[1].value] = {}
-        headers_value[c[1].value][c[3].value] = c[4].value
-        url_new[c[1].value] = []
-        url_new[c[1].value].append(c[5].value)
-        response_code[c[1].value] = {}
-        response_code[c[1].value][c[2].value] = c[6].value
-        response_new[c[1].value] = {}
-        response_new[c[1].value][c[2].value] = c[7].value
         
-    else:
-        if c[2].value is not None:
-            verbs_new[last_point].append(c[2].value)
-        if c[3].value is not None:
-            headers_name[last_point].append(c[3].value)
-            if c[4].value is not None:
-                if  c[4].value == 'Bearer' or c[4].value == 'Bearer ':
-                    if new_token == 1:
-                        token = fetchToken()
-                    headers_value[last_point][c[3].value] = c[4].value + ' ' + token
-                    
-                else:
-                    headers_value[last_point][c[3].value] = c[4].value
-                    
-        if c[5].value is not None:
-            url_new[last_point].append(c[5].value)
-        if c[6].value is not None:
-            response_code[last_point][c[2].value] = c[6].value
-        if c[7].value is not None:
-            response_new[last_point][c[2].value] = c[7].value
         
-points_new
-verbs_new 
-headers_name 
-headers_value['settings']
-headers_value
-url_new 
-response_new
-response_code
+def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
+    
+    wb = load_workbook(filename = filename)
+    if sheet_name == '__active':
+        sheet = wb.active
+    else: 
+        sheet = wb.get_sheet_by_name(sheet_name)
+    try:
+        cells = sheet[diapasone[0]: diapasone[1]]
+    except Exception as e:
+        printlog('Неверный диапазон значений для парсинга')
+    c = [0 for i in range(len(cells) )]
+    parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'url' : {}, 'post_data':{}, 'response' : {}, 'response_code' : {}, 'token' :0}
+
+    i = 0
+    for *c, in cells:  
+        i +=1
+        if i==1:
+            continue
+        if c[0].value is not None:
+            parsed_data['points'].append(c[1].value)
+            last_point = c[1].value
+            parsed_data['verbs'][c[1].value] = []
+            parsed_data['verbs'][c[1].value].append(c[2].value)
+            parsed_data['headers_name'][c[1].value] = []
+            parsed_data['headers_name'][c[1].value].append(c[3].value)
+            parsed_data['headers_value'][c[1].value] = {}
+            parsed_data['headers_value'][c[1].value][c[3].value] = c[4].value
+            parsed_data['url'][c[1].value] = []
+            parsed_data['url'][c[1].value].append(c[5].value)
+            parsed_data['post_data'][c[1].value] = {}
+            parsed_data['post_data'][c[1].value][c[2].value] = c[6].value
+            parsed_data['response_code'][c[1].value] = {}
+            parsed_data['response_code'][c[1].value][c[2].value] = c[7].value
+            parsed_data['response'][c[1].value] = {}
+            parsed_data['response'][c[1].value][c[2].value] = c[8].value
+            # if validate_function is not None:
+                # if not validate_function(parsed_data):
+                    # raise Error #ToDo
+            
+        else:
+            if c[2].value is not None:
+                parsed_data['verbs'][last_point].append(c[2].value)
+            if c[3].value is not None:
+                parsed_data['headers_name'][last_point].append(c[3].value)
+                if c[4].value is not None:
+                    if  c[4].value == 'Bearer' or c[4].value == 'Bearer ':
+                        if new_token == 1:
+                            token = fetchToken()
+                        parsed_data['headers_value'][last_point][c[3].value] = c[4].value + ' ' + token
+                        
+                    else:
+                        parsed_data['headers_value'][last_point][c[3].value] = c[4].value
+            print(1)
+            if c[5].value is not None:
+                parsed_data['url'][last_point].append(c[5].value)
+            print(2)
+            if c[6].value is not None:
+                parsed_data['post_data'][last_point].append(c[6].value)
+            print(3)
+            if c[7].value is not None:
+                parsed_data['response_code'][last_point][c[2].value] = c[7].value
+            print(4)
+            if c[8].value is not None:
+                parsed_data['response'][last_point][c[2].value] = c[8].value
+            print(5)
+    return parsed_data
+        
+        
+parsed_data = read_data(filename)        
+parsed_data
+filename = 'setting1.xlsx'
+        
+parsed_data['points']
+parsed_data['verbs'] 
+parsed_data['headers_name'] 
+parsed_data['headers_value']
+parsed_data['url'] 
+parsed_data['post_data']
+parsed_data['response']
+parsed_data['response_code']
+
+point = 'getToken2'
+verb = 'post'
+r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=data_new)
 
 token = fetchToken()
 
@@ -1017,50 +1030,41 @@ workbook = xlsxwriter.Workbook('response.xlsx')
 worksheet = workbook.add_worksheet('response')
 i = 1
 j = 1    
-print('ok1')
-for point in points_new:
-    worksheet.write( i, j, point)
-    worksheet.write( i, j+5, str(data_new))
+for point in parsed_data['points']:
+    worksheet.write( i, j, str(point))
+    worksheet.write( i, j+5, str( parsed_data['post_data'][point]) )
     i1 = i
-    print('ok2')
-    for verb in verbs_new[point]:
-        worksheet.write( i1, j+1, verb)
+    for verb in parsed_data['verbs'][point]:
+        worksheet.write( i1, j+1, str(verb))
         try:
             if verb=='post':
-                r = requests.request(verb, url, headers=header, data=data_new)
+                r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=parsed_data['post_data'][point])
             else:
-                r = requests.request(verb, url, headers=header)
+                r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
             resp = r.json()
-        except Exseption as e:
+        except Exception as e:
             print(e)
             resp = r.text
         worksheet.write( i1, j+6, str(r) )
-        print(resp)
         worksheet.write( i1, j+7, str(resp) )
-
-
         i1 = i1 + 1
-    worksheet.write( i, j+2, *url_new[point])
+    worksheet.write( i, j+2, *parsed_data['url'][point])
     i2 = i
-    print('ok3')
-    for h in headers_name[point]:
+    for h in parsed_data['headers_name'][point]:
         print(h)
-        worksheet.write( i2, j+3, h)
-        worksheet.write( i2, j+4, headers_value[point][h])
+        worksheet.write( i2, j+3, str(h))
+        worksheet.write( i2, j+4, str(parsed_data['headers_value'][point][h]))
         i2 = i2 + 1
-    print('ok4')
     i3 = i
-
-    print('ok5')
-
-    print('i, i+2, i1,i2,i3', i, i+2, i1,i2,i3)
     i = max(i+1, i1, i2, i3) + 1
 workbook.close()
 
-type(response_new['links']['get'])
 
-if ifLD(response_new['links']['get']):
-    for i in response_new['links']:
+
+type(parsed_data['response']['links']['get'])
+
+if ifLD(parsed_data['response']['links']['get']):
+    for i in parsed_data['response']['links']:
         print(i)     
 
 def ifLD(ld):
@@ -1069,20 +1073,20 @@ def ifLD(ld):
     return 0
 ok =0 
 for point in points_new:
-    for verb in  verbs_new[point]:
+    for verb in  parsed_data['verbs'][point]:
         # print('0')
-        # print(verb, url_new[point], headers_value[point])
-        r = requests.request(verb, *url_new[point], headers =  headers_value[point])
+        # print(verb, parsed_data['url'][point], parsed_data['headers_value'][point])
+        r = requests.request(verb, *parsed_data['url'][point], headers =  parsed_data['headers_value'][point])
         # print('1')
         print(r.status_code)
         # print('2')
-        if r.text == response_new[point]:
+        if r.text == parsed_data['response'][point]:
             print('ok')
             ok +=1
         else:
             print()
             print()
-            response_new[point]
+            parsed_data['response'][point]
             print(r.text)
         # requests.re
 ok
