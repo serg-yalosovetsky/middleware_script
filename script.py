@@ -1,7 +1,9 @@
 from json.decoder import JSONDecodeError
 from typing import Dict
 import aiohttp
+import xlsxwriter
 import requests, asyncio
+from openpyxl import load_workbook
 
 def random_chr(n,m=0,k=1, binary=1):
     if binary:
@@ -338,61 +340,8 @@ def fetchPass(token = None, url=None, headers=None, mw = None):
         print(json_response)
     return json_response
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(asyncio.gather(
-#     factorial("A", 2),
-#     factorial("B", 3),
-#     factorial("C", 4),
-# ))
-# loop.close()
 
 
-
-
-import csv
-filename = 'ok.xlsx'
-with open(filename, 'wb') as outfile:
-    writer = csv.writer(outfile)
-    # to get tabs use csv.writer(outfile, dialect='excel-tab')
-    writer.writerows(log[0])
-
-from pandas import DataFrame, ExcelWriter
-
-myDF = DataFrame(log[0])
-writer = ExcelWriter(filename)
-myDF.to_excel(writer)
-writer.save()
-
-import xlsxwriter
-
-def write_to_excel(s='', debug=0):
-    
-    filename = ['ok' +s+ '.xlsx', 'err' +s+ '.xlsx']
-    for i in range(2):    
-        workbook = xlsxwriter.Workbook(filename[i])
-        worksheet = workbook.add_worksheet()
-        q=0
-        for j in log[i]:
-            (a,b,c,d) = j 
-            (e,f,g,h) = log[i][j]
-            worksheet.write(q,1, str(a))
-            worksheet.write(q,2, str(b))
-            worksheet.write(q,3, str(c))
-            worksheet.write(q,4, str(d))
-            worksheet.write(q,5, str(e))
-            worksheet.write(q,6, str(f))
-            worksheet.write(q,7, str(g))
-            worksheet.write(q,8, str(h))
-
-            # print(log[0][i], 'd,e,f', d,e, a)
-            q+=1
-            log_print(debug, 4, q)
-            # if q>20:
-            #     break
-        workbook.close()
-
-points
-dictionary = {0:0}
 
 def print_elem(dic, key):
     if type(dic) == type(dictionary) and dic.get(key, 0):
@@ -400,112 +349,224 @@ def print_elem(dic, key):
     else:
         return key + ' ' + dic[key]
 
-def write2_to_excel(s='', simple = 0, debug=0):
-    
-    s='test'
-    simple = 0
-    debug=0
-    
-    # filename = ['ok' +s+ '.xlsx', 'err' +s+ '.xlsx']
-    # for i in range(2):  
 
-    
-workbook = xlsxwriter.Workbook('test.xlsx')
-worksheets = []
-row = []
-ws_name = []
-for p in points:
-    ws_name.append(p)
-    worksheets.append(workbook.add_worksheet(p) )
-    row.append(0)
-    
-for j in log[i]:
-    temp = [ 0 for i in range(8)] 
+def isType(e):  #-1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
+    if e is None:
+        return -1
+    if e == [] or e == {} or e == ():
+        return 0
+    if str(type(e)) == "<class 'bool'>" or str(type(e)) == "<class 'int'>" or str(type(e)) == "<class 'float'>" or str(type(e)) == "<class 'str'>":
+        return 1 
+    if str(type(e)) == "<class 'list'>":
+        return 2 
+    if str(type(e)) == "<class 'dict'>":
+        return 3  
 
-    (temp[0], temp[1], temp[2], temp[3]) = j 
-    (temp[4], temp[5], temp[6], temp[7]) = log[i][j]
-    i = 0
-    t = ws_name.index(temp[0])
-    for n in range(7):
-        worksheets[t].write( row[t], n+1, str(temp[n]))
 
-    if simple:
-        worksheets[t].write( row[t], 8, str(temp[7]))  
+def is_int(i):
+    try:
+        int(i)
+        return 1 
+    except:
+        return 0
+    
+def none_safe_str(s):
+    if s is None:
+        return s
     else:
-        if ifDict(temp[7]):
-            for k,v in temp[7].items():    
-                
-                if ifDict(v):
-                    for l,b in v.items():    
-                        worksheets[t].write( row[t], 8, str(l) )
-                        worksheets[t].write( row[t], 9, str(b) )
-                        worksheets[t].write( row[t], 10, 'dict dict' )
-                        
-                        row[t]+=1
-                elif ifList(v):
-                    for l in v:    
-                        
-                        if ifDict(l):
-                            for m,c in l.items():    
-                                worksheets[t].write( row[t], 8, str(m) )
-                                worksheets[t].write( row[t], 9, str(c) )
-                                worksheets[t].write( row[t], 10, 'dict list dict' )
-                                
-                                row[t]+=1
-                        else:
-                            worksheets[t].write( row[t], 8, str(l) )
-                            worksheets[t].write( row[t], 10, 'dict list esle' )
-                            row[t]+=1
-                else:
-                    print(k)
-                    print('dict else')       
-                    worksheets[t].write( row[t], 8, str(k) )
-                    worksheets[t].write( row[t], 9, str(v) )
-                    worksheets[t].write( row[t], 10, 'dict else' )
-                    
-                    row[t]+=1
-        else:
-            for k in temp[7]:
-                
-                if ifDict(k):
-                    for l,v in k.items():    
-                        worksheets[t].write( row[t], 8, str(l) )
-                        worksheets[t].write( row[t], 9, str(v) )
-                        worksheets[t].write( row[t], 10, 'else dict' )
-                        
-                        row[t]+=1
-                elif ifList(k):
-                    for l in k:    
-                        worksheets[t].write( row[t], 8, str(l) )
-                        if ifDict(l):
-                            worksheets[t].write( row[t], 10, 'else list dict' )
-                        else:
-                            worksheets[t].write( row[t], 10, 'else list else' )
-                            
-                        row[t]+=1
-                else:  
-                    print(k)
-                    print('else')       
-                    worksheets[t].write( row[t], 8, str(k) )
-                    worksheets[t].write( row[t], 10, 'else else' )
-                    
-                    row[t]+=1
+        return str(s)
+    
+def checkArray(el): #0 str, 1 list, 2 dict, 3 listdict, 4 listlist, 5 dictlist, 6 dictdict
+    if isType(el)<2: #isType(): -1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
+        return 0
+    for e in el:
+        # print('checkarray0',isType(e),type(e))
+        # print(e)
+        if isType(el)==2: #list
+            if isType(e)>=2: #list or dict
+                return isType(e) + 1
+            else: return 1
+        if isType(el)==3: #dict
+            if isType(el[e])>=2: #list or dict
+                return isType(el[e]) + 3
+            else: return 2
+    return 0        
+        
+        
+def parse_string(s):
+    for c in s:
+        if c=='[':
+            pass
+        if c=='{':
+            print()
+        # if 
 
-    row[t]+=1
-    # print(log[0][i], 'd,e,f', d,e, a)
-    # q+=1
-    log_print(debug, 4, q)
-    # if q>2:
-    #     break
+example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':5}}]
+
+def parse_str(s,n, pre=' ', dic=0):
+    if isType(s)<2:
+        yield (n,s,dic)
+    if isType(s)==2:
+        for c in s:
+            yield from parse_str(c, n+1, ' ',dic)
+        print()
+    if isType(s)==3:
+        for c in s:
+            yield (n+1,c,dic)
+            yield from parse_str(s[c], n, pre+' ', dic+1)
+        dic -=1
+    
+g = parse_str(resp, 1)
+print(next(g))
+
+
+point = 'settings'
+verb ='get'
+url = url_creator(point)
+token = fetchToken()
+header = header_creator(point, token)
+r = requests.request(method = verb, url= url, headers=header)
+resp = r.json()
+resp =_
+example = [{'a':[1,2],'b':{3}},{'w':{'q':4}}]
+print(str(example))
+print(repr(example))
+
+
+
+q = 3.21
+type(q)
+token = fetchToken()
+header = header_creator(point, token = token)
+url = url_creator(point)
+r = requests.request(verb, url, headers = header )
+r
+r.json()
+resp = r.json()
+filename = 'testings.xlsx'
+example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':{'r':5,'t':6},'t':[6,7,8]},'y':9 },5]
+
+
+
+workbook = xlsxwriter.Workbook(filename)
+sett = workbook.add_worksheet('settings')
+
+write_to_excel(resp, filename,verbose=3, new_worksheet='testings',x0=2,y0=0)
+workbook,worksheet,i = write_to_excel(resp,verbose=3, current_worksheet=sett, workbook=workbook,x0=0,y0=3)
 workbook.close()
 
-token = fetchToken()
-
-verbs = ['get', 'post']
-describe = 5
-filename = 'settings.xlsx'
 
 
+def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',x0=0,y0=0):
+    '''Функция для красивого вывода ответа на запрос в файл екселя
+    '''
+    g = parse_str(resp,verbose=verbose)
+    # next(g)
+    if workbook=='':
+        workbook = xlsxwriter.Workbook(filename)
+        need_close = 1
+    else:
+        need_close =0
+        
+        
+    if current_worksheet=='':
+        sett = workbook.add_worksheet(new_worksheet)
+    else:
+        sett = current_worksheet
+    # bold = workbook.add_format({'bold': True})
+    border = workbook.add_format()
+    border.set_border(style=1)
+
+    border_no_top = workbook.add_format()
+    border_no_top.set_bottom()
+    border_no_top.set_left()
+    border_no_top.set_right()
+    border_no_topright = workbook.add_format()
+    border_no_topright.set_border(style =3)
+    border_no_topright.set_bottom()
+    border_no_topright.set_left()
+    border_no_left = workbook.add_format()
+    border_no_left.set_border(style =3)
+    border_no_left.set_bottom()
+    border_no_left.set_top()
+    border_no_left.set_right()
+    border_no_right = workbook.add_format()
+    border_no_right.set_border(style =3)
+    border_no_right.set_bottom()
+    border_no_right.set_top()
+    border_no_right.set_left()
+    border_no_bottom = workbook.add_format()
+    border_no_bottom.set_top()
+    border_no_bottom.set_left()
+    border_no_bottom.set_right()
+    border_no_bottomleft = workbook.add_format()
+    border_no_bottomleft.set_border(style =3)
+    border_no_bottomleft.set_top()
+    border_no_bottomleft.set_right()
+
+    try:
+        i=0
+        d_prev=0
+        s_prev=''
+        q=0
+        border_prev = ''
+        while True:
+            s,n,d =next(g)
+            d+=y0
+            if i==0:
+                d_prev=d
+                n_prev=n
+            if q==0:
+                i =x0
+                # d+=y0
+                d_prev=d
+                i_prev=i
+            print('n=',n,'| s=',s,' |d=',d)
+            if d>d_prev:
+                i-=1
+                print('-1', s)
+            
+            if n == n_prev and q>0: #если уровень списка одинаков для текущего и предыдущего
+                if d==d_prev: #если уровень словаря одинаков для текущего и предыдущего
+                    if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
+                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottomleft)
+                    else: #иначе устанавливаем только  "без нижней"
+                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottom)
+
+                    sett.write(i, d, str(s),border_no_top)
+                    border_prev = 'no top' #устанавливаем "без верхней " для текущей
+                    q+=1
+                elif d>d_prev:
+                    if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
+                        sett.write(i_prev, d_prev, str(s_prev),border_no_topright)
+                    else: #иначе устанавливаем только "без правой"
+                        sett.write(i_prev, d_prev, str(s_prev),border_no_right)
+                    sett.write(i, d, str(s),border_no_left)
+                    border_prev = 'no left'
+                    q+=1
+                else:
+                    sett.write(i, d, str(s))
+                    border_prev = ''
+                    q+=1
+            else:
+                sett.write(i, d, str(s))
+                border_prev = ''
+                q+=1
+            
+            d_prev = d
+            i_prev = i
+            n_prev = n
+            s_prev = s
+            i+=1
+    except Exception as e:
+        print(e)
+    finally:
+        if need_close:
+            workbook.close()
+        return (workbook,sett,i-x0)
+
+filename
+resp
 debug = 0
 describe = 4
 workbook = xlsxwriter.Workbook(filename)
@@ -544,398 +605,13 @@ for point in points:
         # l = 0
         # if ifLD(resp): #респ - словарь или список
             # sett.write(i+1+j+l, 8, 'list or dict')
-        verbs_counter = writing_structure_in_excel(sett, resp, describe, point_counter=point_counter, verbs_counter=verbs_counter, debug=debug)
-    point_counter = point_counter + 1 + max(verbs_counter, heads_counter)                        
+        workbook,sett,resp_counter = write_to_excel(resp,verbose=2, current_worksheet=sett, workbook=workbook,x0=point_counter + verbs_counter + 1,y0=8)
+        # verbs_counter = writing_structure_in_excel(sett, resp, describe, point_counter=point_counter, verbs_counter=verbs_counter, debug=debug)
+        verbs_counter+=resp_counter+1
+    point_counter = point_counter  + max(verbs_counter, heads_counter)                        
 
 workbook.close()
 
-
-
-def writing_structure_in_excel(sett, resp, verbose, point_counter=0, verbs_counter=0, debug=0):
-    # try:
-    resp_counter = 0
-    sett.write(point_counter + verbs_counter + 1, 7, str(checkArray(resp)) + ' ' + str(type(resp)) )
-    
-    if verbose==0:
-        sett.write(point_counter + verbs_counter + 1, 8, str(resp))
-        
-    if verbose>=1:
-        if isType(resp)<2: #просто строка
-            sett.write(point_counter + verbs_counter + 1, 8, str(resp))
-        # if checkArray(resp)<3: #список или словарь
-        if verbose<3:
-            if isType(resp)==2:
-                for res in resp:
-                    sett.write(point_counter + verbs_counter +resp_counter+ 1, 7, str(checkArray(res)) + ' vv ' + str(type(res)) )
-                    sett.write(point_counter + verbs_counter + resp_counter + 1, 8, str(res))
-                    log_print(debug, 4, '02')
-                    resp_counter +=1
-            if isType(resp)==3:
-                for res in resp:
-                    sett.write(point_counter + verbs_counter +resp_counter+ 1, 7, str(checkArray(res)) + ' vv ' + str(type(res)) )
-                    sett.write(point_counter + verbs_counter + resp_counter + 1, 8, str(res))
-                    sett.write(point_counter + verbs_counter + resp_counter + 1, 9, str(resp[res]))
-                    resp_counter +=1
-        if verbose>=3:
-            resp_counter = excel_writing_element(sett, resp, verbose, 8, point_counter+ verbs_counter, resp_counter)
-            
-    if verbose>=4:
-                    
-        if checkArray(resp)>=3: #список словарей, список списков, словарь списков или словарь словарей
-            if isType(resp)==2: #если список, который внутри содержит список или словарь
-                                #список словарей, список списков,
-                for res in resp:
-                            
-                    if isType(res)==2: #если список списков, который внутри содержит список или словарь
-                        #resp list, res list, res1 res2
-                        for res1 in res:
-                            resp_counter = excel_writing_element(sett, res1, verbose, 8, point_counter+ verbs_counter, resp_counter)
-
-                            
-                    if isType(res)==3: #если список словарей, который внутри содержит список или словарь
-                            #resp list, res dict, res1 res2
-                        for res1 in res:
-                            sett.write(point_counter + verbs_counter + resp_counter + 1, 8, str(res1)) #вывести ключи элементов resp[res]
-                            resp_counter = excel_writing_element(sett, res[res1], verbose, 9, point_counter+ verbs_counter, resp_counter)
-
-
-            if isType(resp)==3:#если словарь, который внутри содержит список или словарь
-                                        #список словарей, список списков,
-                for res in resp:
-                    sett.write(point_counter + verbs_counter +resp_counter+ 1, 7, str(checkArray(res)) + ' ' + str(type(res)) )
-                    sett.write(point_counter + verbs_counter + resp_counter + 1, 8, str(res)) #вывести ключи элементов resp[res]
-                            
-                    if isType(resp[res])==2: #если словарь списков, который внутри содержит список или словарь
-                        #resp dict, res list, res1 res2
-                        for res1 in resp[res]:
-                            
-                            resp_counter = excel_writing_element(sett, res1, verbose, 9, point_counter+ verbs_counter, resp_counter)
-                            
-                    if isType(resp[res])==3: #если словарь словарей, который внутри содержит список или словарь
-                            #resp dict, res dict, res1 res2
-                        for res1 in resp[res]:
-                            sett.write(point_counter + verbs_counter + resp_counter + 1, 9, str(res1)) #вывести ключи элементов resp[res]
-
-                            resp_counter = excel_writing_element(sett, resp[res][res1], verbose, 10, point_counter + verbs_counter, resp_counter)
-    # except Exception as e:
-    #     print(e)
-    verbs_counter += resp_counter+1
-    # print('verbose', verbose)
-    return verbs_counter
-
-
-def excel_writing_element(sett, res1, verbose, index, counters, resp_counter):
-    try:
-        log_print(debug, 4, '10')
-            
-        if isType(res1)<2: #если ни список, ни словарь
-            log_print(debug, 4, '11')
-            
-            sett.write(counters + resp_counter + 1, index, str(res1))
-            log_print(debug, 4, '12')
-            #resp dict, res list, res1 str
-    except Exception as e:
-        print('|', res1, '|')
-        print(e) 
-    if verbose<3:
-        sett.write(counters + resp_counter + 1, index, str(res1))
-    else:
-            
-        if isType(res1)==2: #если список 
-            #resp dict, res list, res1 list, res2
-            try:
-                for res2 in res1:
-                    if verbose>4:
-                        sett.write(counters + resp_counter + 1, index, str(res2))
-                        resp_counter = verbose_writing(sett, res2, index, counters, resp_counter)
-                    else:
-                        sett.write(counters + resp_counter + 1, index, str(res2))
-                        resp_counter +=1
-            except Exception as e:
-                sett.write(counters + resp_counter + 1, index, str(res1))
-                print(' excel_writing_element', e)
-                
-        if isType(res1)==3: #если словарь 
-            #resp dict, res list, res1 dict, res2
-            try:
-                for res2 in res1:
-                    sett.write(counters +resp_counter+ 1, 7, str(checkArray(res1[res2])) + ' vvv ' + str(type(res1[res2]))+ str(len(res1[res2])) )
-                    
-                    if verbose>4:
-                        sett.write(counters + resp_counter + 1, index, str(res2))
-                        resp_counter = verbose_writing(sett, res1[res2], index, counters, resp_counter)
-                    else:
-                        
-                        sett.write(counters + resp_counter + 1, index, str(res2))
-                        sett.write(counters + resp_counter + 1, index+1, str(res1[res2]))
-                        resp_counter +=1
-            except Exception as e:
-                sett.write(counters + resp_counter + 1, index, str(res1))
-                print(' excel_writing_element', e)
-    resp_counter +=1
-    return resp_counter
-
-def verbose_writing(sett, res2, index, counters, resp_counter):
-    if checkArray(res2)<3:
-        sett.write(counters + resp_counter + 1, index+1, str(res2))
-    if checkArray(res2)==3:
-        for lis in res2:
-            for k,v in lis.items():
-                sett.write(counters + resp_counter + 1, index+1, str(k))
-                sett.write(counters + resp_counter + 1, index+2, str(v))
-                resp_counter +=1
-    if checkArray(res2)==4:
-        for lis in res2:
-            for k in lis:
-                sett.write(counters + resp_counter + 1, index+1, str(k))
-                resp_counter +=1
-    if checkArray(res2)==5:
-        for k,lis in res2.items():
-            sett.write(counters + resp_counter + 1, index+1, str(k))
-            for v in lis:
-                sett.write(counters + resp_counter + 1, index+2, str(v))
-                resp_counter +=1
-    if checkArray(res2)==3:
-        for kd, dic in res2.items():
-            sett.write(counters + resp_counter + 1, index+1, str(kd))
-            for k,v in dic.items():
-                sett.write(counters + resp_counter + 1, index+2, str(k))
-                sett.write(counters + resp_counter + 1, index+3, str(v))
-                resp_counter +=1
-    return resp_counter
-
-point = 'settings'
-verb ='get'
-url = url_creator(point)
-token = fetchToken()
-header = header_creator(point, token)
-r = requests.request(method = verb, url= url, headers=header)
-resp = r.json()
-resp =_
-example = [{'a':[1,2],'b':{3}},{'w':{'q':4}}]
-print(str(example))
-print(repr(example))
-def parse_str(s):
-    for c in s:
-        if c=='[':
-            pass
-        if c=='{':
-            print()
-        # if 
-
-example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':5}}]
-
-def parse_str(s,n, pre=' ', dic=0):
-    if isType(s)<2:
-        yield (n,s,dic)
-    if isType(s)==2:
-        for c in s:
-            yield from parse_str(c, n+1, ' ',dic)
-        print()
-    if isType(s)==3:
-        for c in s:
-            yield (n+1,c,dic)
-            yield from parse_str(s[c], n, pre+' ', dic+1)
-        dic -=1
-    
-g = parse_str(resp, 1)
-print(next(g))
-
-
-q = 3.21
-type(q)
-token = fetchToken()
-header = header_creator(point, token = token)
-url = url_creator(point)
-r = requests.request(verb, url, headers = header )
-r
-r.json()
-resp = r.json()
-filename = 'testings.xlsx'
-example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':{'r':5,'t':6},'t':[6,7,8]},'y':9 },5]
-
-
-g = parse_str(example, 1)
-workbook = xlsxwriter.Workbook(filename)
-sett = workbook.add_worksheet('testings')
-bold = workbook.add_format({'bold': True})
-try:
-    i=0
-    d_prev=0
-    while True:
-        n,s,d =next(g)
-        if i==0:
-            d_prev=d
-            n_prev=n
-        print('n=',n,'| s=',s,' |d=',d)
-        if d>d_prev:
-            i-=1
-            print('-1', s)
-            
-        if n>n_prev:
-            sett.write(i, d, str(s),bold)
-        else:
-            sett.write(i, d, str(s))
-        d_prev = d
-        n_prev = n
-        i+=1
-except Exception as e:
-    print(e)
-finally:
-    workbook.close()
-
-
-def checkArray(el): #0 str, 1 list, 2 dict, 3 listdict, 4 listlist, 5 dictlist, 6 dictdict
-    if isType(el)<2: #isType(): -1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
-        return 0
-    for e in el:
-        # print('checkarray0',isType(e),type(e))
-        # print(e)
-        if isType(el)==2: #list
-            if isType(e)>=2: #list or dict
-                return isType(e) + 1
-            else: return 1
-        if isType(el)==3: #dict
-            if isType(el[e])>=2: #list or dict
-                return isType(el[e]) + 3
-            else: return 2
-    return 0        
-        
-
-def deconv(el):
-    try:
-        print('log0')
-        print(type(el), isType(el), len(el))
-        print(el)
-        if checkArray(el):
-            print('log1')
-            if isType(el)==3:
-                print('log2', type(el), el.keys(), 'log2')
-                yield el.keys()
-                c = 0
-                print('log2.5')
-                for e in el:
-                    print('log3')
-                    if not c:
-                        if checkArray(el[e]):
-                            print('log4')
-                            # print(el[e])
-                            g = deconv(el[e])
-                            yield from next(g)
-                            
-                    c += 1
-        if checkArray(el):
-
-            if isType(el)>=2:
-                print('log11')
-                for e in el:
-                    print('log12')
-                    print(type(e), checkArray(e))
-                    print(e)
-                    if checkArray(e):
-                        print('log13')
-                        g = deconv(e)
-                        yield from next(g)
-                    else:
-                        yield  e
-        if not checkArray(el):
-            print('log20')
-            yield ('str', el)
-
-    # if isType(el)==
-    except Exception as e:
-        print('log9')
-        print(e)
-
-def unlist(el):
-    for e in el:
-        pass
-def dict2list(dic):
-    l = []
-    for d in dic:
-        l.append(dic[d])
-    return l
-      
-
-def isType(e):  #-1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
-    if e is None:
-        return -1
-    if e == [] or e == {} or e == ():
-        return 0
-    if str(type(e)) == "<class 'bool'>" or str(type(e)) == "<class 'int'>" or str(type(e)) == "<class 'float'>" or str(type(e)) == "<class 'str'>":
-        return 1 
-    if str(type(e)) == "<class 'list'>":
-        return 2 
-    if str(type(e)) == "<class 'dict'>":
-        return 3  
-
-def deconv2(el ,i):
-    print('__0')
-    if checkArray(el)==3 or checkArray(el)==4:
-        for e in el:
-            # g = deconv2(el)
-            i = i+1
-            print('__0.5',i)
-            yield from deconv2(el, i)
-    print('__1')
-
-    if checkArray(el)>=5:
-        for e in el:
-            yield el.keys()
-            # g = deconv2(el[e])
-            i = i+1
-            print('__1.5',i)
-            if i<10:
-                yield from next(deconv2(el[e]), i)
-            else:
-                yield el
-                
-    print('__2')
-
-    if checkArray(el)<3:
-        yield el.keys()
-    print('__3')
-    
-def deconv3(el, l):
-    if isType(el)==3:
-        l.append( list(el) )
-        deconv3( dict2list(el), l)
-    elif isType(el)==2:
-        if checkArray(el)>=2:
-
-            
-list(d)
-dict2list(d)
-
-gen = deconv2(resp, 0)
-
-while True:
-    # try:
-    l = next(gen)
-    # except Exception as e:
-        # print(e)
-    # print('s=', s)
-    print('l=', l)
-    for i in l:
-        print(i)
-
-
-
-import requests
-from openpyxl import load_workbook
-
-def is_int(i):
-    try:
-        int(i)
-        return 1 
-    except:
-        return 0
-    
-def none_safe_str(s):
-    if s is None:
-        return s
-    else:
-        return str(s)
         
 def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
@@ -1046,7 +722,7 @@ write_response_data(parsed_data , filename='response.xlsx')
 
     
 
-def write_response_data(parsed_data, filename='response.xlsx', sheet_name='response', **kwargs ):
+def write_2_excel_parsed_data(parsed_data, filename='response.xlsx', sheet_name='response', **kwargs ):
     workbook = xlsxwriter.Workbook(filename = filename)
     worksheet = workbook.add_worksheet(sheet_name)
     i = 1
