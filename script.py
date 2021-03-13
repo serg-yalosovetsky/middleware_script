@@ -1005,10 +1005,10 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
             print(5)
     return parsed_data
         
-        
 parsed_data = read_data(filename)        
 parsed_data
 filename = 'setting1.xlsx'
+  r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
         
 parsed_data['points']
 parsed_data['verbs'] 
@@ -1020,7 +1020,17 @@ parsed_data['response']
 parsed_data['response_code']
 
 token = fetchToken()
+point = 'token'
+url = parsed_data['url'][point]
+url
+header = parsed_data['headers_value'][point]
+header
 
+
+r = requests.request(verb, *url, headers=header)
+r
+
+r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
 worksheets = []
 row = []
 simple = 0
@@ -1032,7 +1042,7 @@ for point in points_new:
 parsed_data['headers_value'][point]
 import xlsxwriter
 
-write_response_data(parsed_data )
+write_response_data(parsed_data , filename='response.xlsx')
 
     
 
@@ -1046,10 +1056,9 @@ def write_response_data(parsed_data, filename='response.xlsx', sheet_name='respo
         i1 = i
         for verb in parsed_data['verbs'][point]:
             worksheet.write( i, j+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
-            worksheet.write( i1, j+1, none_safe_str(verb))
+            worksheet.write( i1, j+1, str(verb))
             try:
-                if verb=='post':
-                    
+                if verb=='post' and parsed_data['post_data'][point].get(verb,''):
                     r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=parsed_data['post_data'][point][verb])
                 else:
                     r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
@@ -1057,7 +1066,9 @@ def write_response_data(parsed_data, filename='response.xlsx', sheet_name='respo
             except Exception as e:
                 print(e)
                 resp = r.text
-            worksheet.write( i1, j+6, none_safe_str(r) )
+                print(r)
+                worksheet.write( i1, j+6, str(r) )
+            print(resp)
             worksheet.write( i1, j+7, none_safe_str(resp) )
             i1 = i1 + 1
         worksheet.write( i, j+2, *parsed_data['url'][point])
@@ -1069,6 +1080,7 @@ def write_response_data(parsed_data, filename='response.xlsx', sheet_name='respo
         i3 = i
         i = max(i+1, i1, i2, i3) + 1
     workbook.close()
+    
 write_response_data(parsed_data )
 
 
