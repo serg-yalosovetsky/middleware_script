@@ -921,12 +921,21 @@ while True:
 
 
 
-
-next(z)    
-z= gen()
+import requests
 from openpyxl import load_workbook
 
-        
+def is_int(i):
+    try:
+        int(i)
+        return 1 
+    except:
+        return 0
+    
+def none_safe_str(s):
+    if s is None:
+        return s
+    else:
+        return str(s)
         
 def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
@@ -947,7 +956,7 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
         i +=1
         if i==1:
             continue
-        if c[0].value is not None:
+        if c[1].value is not None and is_int(c[0].value) :
             parsed_data['points'].append(c[1].value)
             last_point = c[1].value
             parsed_data['verbs'][c[1].value] = []
@@ -968,7 +977,7 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
                 # if not validate_function(parsed_data):
                     # raise Error #ToDo
             
-        else:
+        elif last_point is not None:
             if c[2].value is not None:
                 parsed_data['verbs'][last_point].append(c[2].value)
             if c[3].value is not None:
@@ -1010,10 +1019,6 @@ parsed_data['post_data']
 parsed_data['response']
 parsed_data['response_code']
 
-point = 'getToken2'
-verb = 'post'
-r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=data_new)
-
 token = fetchToken()
 
 worksheets = []
@@ -1024,40 +1029,47 @@ for point in points_new:
     ws_name.append(point)
     worksheets.append(workbook.add_worksheet(point) )
     row.append(0)
+parsed_data['headers_value'][point]
+import xlsxwriter
 
+write_response_data(parsed_data )
 
-workbook = xlsxwriter.Workbook('response.xlsx')
-worksheet = workbook.add_worksheet('response')
-i = 1
-j = 1    
-for point in parsed_data['points']:
-    worksheet.write( i, j, str(point))
-    worksheet.write( i, j+5, str( parsed_data['post_data'][point]) )
-    i1 = i
-    for verb in parsed_data['verbs'][point]:
-        worksheet.write( i1, j+1, str(verb))
-        try:
-            if verb=='post':
-                r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=parsed_data['post_data'][point])
-            else:
-                r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
-            resp = r.json()
-        except Exception as e:
-            print(e)
-            resp = r.text
-        worksheet.write( i1, j+6, str(r) )
-        worksheet.write( i1, j+7, str(resp) )
-        i1 = i1 + 1
-    worksheet.write( i, j+2, *parsed_data['url'][point])
-    i2 = i
-    for h in parsed_data['headers_name'][point]:
-        print(h)
-        worksheet.write( i2, j+3, str(h))
-        worksheet.write( i2, j+4, str(parsed_data['headers_value'][point][h]))
-        i2 = i2 + 1
-    i3 = i
-    i = max(i+1, i1, i2, i3) + 1
-workbook.close()
+    
+
+def write_response_data(parsed_data, filename='response.xlsx', sheet_name='response', **kwargs ):
+    workbook = xlsxwriter.Workbook(filename = filename)
+    worksheet = workbook.add_worksheet(sheet_name)
+    i = 1
+    j = 1  
+    for point in parsed_data['points']:
+        worksheet.write( i, j, none_safe_str(point))
+        i1 = i
+        for verb in parsed_data['verbs'][point]:
+            worksheet.write( i, j+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
+            worksheet.write( i1, j+1, none_safe_str(verb))
+            try:
+                if verb=='post':
+                    
+                    r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=parsed_data['post_data'][point][verb])
+                else:
+                    r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
+                resp = r.json()
+            except Exception as e:
+                print(e)
+                resp = r.text
+            worksheet.write( i1, j+6, none_safe_str(r) )
+            worksheet.write( i1, j+7, none_safe_str(resp) )
+            i1 = i1 + 1
+        worksheet.write( i, j+2, *parsed_data['url'][point])
+        i2 = i
+        for h in parsed_data['headers_name'][point]:
+            worksheet.write( i2, j+3, none_safe_str(h))
+            worksheet.write( i2, j+4, none_safe_str(parsed_data['headers_value'][point][h]))
+            i2 = i2 + 1
+        i3 = i
+        i = max(i+1, i1, i2, i3) + 1
+    workbook.close()
+write_response_data(parsed_data )
 
 
 
