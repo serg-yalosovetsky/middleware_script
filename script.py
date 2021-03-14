@@ -5,7 +5,43 @@ import xlsxwriter
 import requests, asyncio
 from openpyxl import load_workbook
 
-
+           
+def ifIter(v):
+    dictionary = {1:1}
+    lists = [0]
+    if type(v) == type(dictionary) or type(v) == type(lists):
+        return 1
+    else:
+        return 0
+    
+    
+def ifList(v):
+    lists = [0]
+    if type(v) == type(lists) and len(v)>0 :
+        return 1
+    else:
+        return 0
+  
+        
+def ifDict(v):
+    dictionary = {1:1}
+    if type(v) == type(dictionary) and len(v)>0:
+        return 1
+    else:
+        return 0
+    
+    
+def printDict(v0):
+    if ifDict(v0):
+        for k1,v1 in v0.items():
+            return(k1, v1)
+    elif ifList(v0):
+        for v1 in v0:
+            return(v1)
+    else:
+        return(v0)
+         
+         
 def random_chr(n,m=0,k=1, binary=1):
     if binary:
         rand=''
@@ -576,8 +612,93 @@ def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_
             workbook.close()
     return (workbook,sett,i-x0)
 
+filename = 'setting1.xlsx'
 
+       
+def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C40'), validate_function=None, **kwargs ):
     
+    wb = load_workbook(filename = filename)
+    if sheet_name == '__active':
+        sheet = wb.active
+    else: 
+        sheet = wb.get_sheet_by_name(sheet_name)
+    try:
+        cells = sheet[diapasone[0]: diapasone[1]]
+    except Exception as e:
+        printlog('Неверный диапазон значений для парсинга')
+    c = [0 for i in range(len(cells) )]
+    parsed_settings = {'diapasone' : [], 'verbose_level' : 0, 'url_mw' : {}, 'url_siebel' : {}, 'how to check response' : '', 'exclude or inlude fields': '',
+                            'field of response': [] ,'show type of field in response' : '', 'enter after each element of list': '', 'response in borders':'', 'columns' : {}, 'token-mw' :'', 'token-siebel' :''}
+
+    columns_width = 1
+    exclude_or_include = 0        
+    i = 0
+    for *c, in cells:  
+        if c[0].value is not None and c[0].value != '':
+            columns_width = 1
+            if c[1].value is not None and c[1].value != '':
+                exclude_or_include = 0        
+            elif exclude_or_include == 1:
+                parsed_settings['field of response'].append(c[2].value)
+        elif columns_width == 1:
+            parsed_settings['columns'][c[1].value] = c[2].value            
+    
+        if c[0].value == 'начальная точка': parsed_settings['diapasone'].append(c[1].value)
+        if c[0].value == 'конечная точка': parsed_settings['diapasone'].append(c[1].value)
+        if c[0].value == 'уровень раскрытия ответа запроса': parsed_settings['verbose_level'].append(c[1].value)   
+        if c[0].value == 'url для токена миддлваре': url_for_token_mv = c[1].value
+        if c[0].value == 'генерация токена миддлваре': gen_for_token_mv = c[1].value
+        if c[0].value == 'url для токена сибеля':  url_for_token_siebel = c[1].value            
+        if c[0].value == 'генерация токена сибеля':  gen_for_token_siebel = c[1].value            
+        if c[0].value == 'проверка определения способа подстановки токена': url_for_token_check = c[1].value
+        if c[0].value == 'токен миддлваре': 
+            if c[1].value == 'из точки':
+                parsed_settings['url_mw']['from'] = 'from_point_and_url'            
+                parsed_settings['url_mw']['from_point'] = c[2].value            
+                parsed_settings['url_mw']['from_url'] = url_for_token_mv           
+                parsed_settings['url_mw']['how_gen'] = gen_for_token_mv     
+                parsed_settings['url_mw']['how_check_url'] = url_for_token_check     
+            if c[1].value == 'взять из клетки':
+                parsed_settings['url_mw']['from'] = 'from_cell'            
+                parsed_settings['url_mw']['token'] = c[2].value            
+            if c[1].value == 'ничего не делать':
+                parsed_settings['url_mw']['from'] = 'nothing'            
+        if c[0].value == 'токен сибель': 
+            if c[1].value == 'из точки':
+                parsed_settings['url_siebel']['from'] = 'from_point_and_url'            
+                parsed_settings['url_siebel']['from_point'] = c[2].value            
+                parsed_settings['url_siebel']['from_url'] = url_for_token_siebel           
+                parsed_settings['url_siebel']['how_gen'] = gen_for_token_siebel           
+                parsed_settings['url_siebel']['how_check_url'] = url_for_token_check     
+            if c[1].value == 'взять из клетки':
+                parsed_settings['url_siebel']['from'] = 'from_cell'            
+                parsed_settings['url_siebel']['token'] = c[2].value            
+            if c[1].value == 'ничего не делать':
+                parsed_settings['url_siebel']['from'] = 'nothing'            
+
+        if c[0].value == 'старый токен': parsed_settings['verbose_level'].append(c[1].value)            
+        if c[0].value == 'проверка совпадения ответа': 
+            if c[1].value == 'простая': 
+                parsed_settings['how to check response'].append('simple')            
+            if c[1].value == 'сложная': 
+                parsed_settings['how to check response'].append(c[1].value)            
+                if c[2].value == 'исключить': 
+                    parsed_settings['exclude or inlude fields'].append('exclude')            
+                    exclude_or_include =1        
+                if c[2].value == 'включить': 
+                    parsed_settings['exclude or inlude fields'].append('include')    
+                    exclude_or_include =1        
+        if c[0].value == 'вывод типов полей в ответе': parsed_settings['show type of field in response'] = c[1].value            
+        if c[0].value == 'за каждым элементом списка ответов перевод строки ': parsed_settings['enter after each element of list'] = c[1].value            
+        if c[0].value == 'ответ в рамочки': parsed_settings['response in borders'] = c[1].value            
+        if c[0].value == 'размер столбцов': 
+            columns_width = 1
+            parsed_settings['columns'][c[1].value] = c[2].value            
+            
+    return parsed_settings
+        
+
+
         
 def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
@@ -731,230 +852,7 @@ write_response_data(parsed_data )
 
 
 
-    
-def writer_2_excel(filename, worksheet, ):
-    workbook = xlsxwriter.Workbook(filename)
-    sett = workbook.add_worksheet(worksheet)
-    counter = 0
-    point_counter = 0
-    for point in points:
-        counter += 1
-        point_counter += 1
-        sett.write(point_counter + 1, 0, counter)
-        sett.write(point_counter + 1, 1, point)
-        
-        heads_counter = 0
-        for h,v in header_creator(point, token = token).items():
-            sett.write(point_counter + heads_counter + 1, 3, h)
-            sett.write(point_counter + heads_counter + 1, 4, v)
-            print(h,v,' counter + heads_counter', counter, heads_counter)
-            
-            heads_counter+=1
-            
-        sett.write(point_counter + 1, 5, url)
-        
-        verbs_counter = 0
-        for verb in verbs:
-            sett.write(point_counter + verbs_counter + 1, 2, verb)
-            header = header_creator(point, token = token)
-            url = url_creator(point)
-            r = requests.request(verb, url, headers = header )
-            try:
-                resp = r.json()
-            except Exception as e:
-                print(e)
-                resp = r.text
-            sett.write(point_counter + verbs_counter + 1, 6, r.status_code)
-            # sett.write(i+1+j, 7, str(resp))
-            # l = 0
-            # if ifLD(resp): #респ - словарь или список
-                # sett.write(i+1+j+l, 8, 'list or dict')
-            workbook,sett,resp_counter = write_to_excel(resp,verbose=2, current_worksheet=sett, workbook=workbook,x0=point_counter + verbs_counter + 1,y0=8)
-            # verbs_counter = writing_structure_in_excel(sett, resp, describe, point_counter=point_counter, verbs_counter=verbs_counter, debug=debug)
-            verbs_counter+=resp_counter+1
-        point_counter = point_counter  + max(verbs_counter, heads_counter)                        
 
-    workbook.close()
-
-
-
-type(parsed_data['response']['links']['get'])
-
-if ifLD(parsed_data['response']['links']['get']):
-    for i in parsed_data['response']['links']:
-        print(i)     
-
-def ifLD(ld):
-    if ifDict(ld) or ifList(ld):
-        return 1
-    return 0
-ok =0 
-for point in points_new:
-    for verb in  parsed_data['verbs'][point]:
-        # print('0')
-        # print(verb, parsed_data['url'][point], parsed_data['headers_value'][point])
-        r = requests.request(verb, *parsed_data['url'][point], headers =  parsed_data['headers_value'][point])
-        # print('1')
-        print(r.status_code)
-        # print('2')
-        if r.text == parsed_data['response'][point]:
-            print('ok')
-            ok +=1
-        else:
-            print()
-            print()
-            parsed_data['response'][point]
-            print(r.text)
-        # requests.re
-ok
-u = ['https://mw-tst.itsmartflex.com/uaa/oauth/token?grant_type=client_credentials']
-
-h = {'Accept-Language': 'ru', 'Content-Type': 'application/json', 'Authorization': 'Basic aW50ZXJuYWw6aW50ZXJuYWw='}        
-req = requests.request('GET', *u, headers = h)
-
-
-import requests
-import xlrd, xlwt
-import pandas as pd
-
-file = 'something.xlsx'
-
-# Load spreadsheet
-xl = pd.ExcelFile(file)
-print(xl.sheet_names)
-df1 = xl.parse('Sheet12')
-df = pd.read_excel(file)
-
-df.get('token',0)
-for d in df:
-    print(d) 
-    
-log[0]
-df0 = pd.DataFrame(log[0][0])
-df1 = pd.DataFrame(log[1])
-df = pd.DataFrame(log)
-df
-df.to_excel('something.xlsx')
-df0.to_excel('something.xlsx')
-df1.to_excel('something.xlsx')
-
-
-q=0
-for i in log[0]:
-    print()
-    print(i)
-    # print(log[0][i])
-    d={1:2}
-    s=[0,0,0,0]
-    (s[0], s[1], s[2], s[3] ) = (log[0][i])
-
-    for st in s:
-        if type(st)!=type(q):
-            print(type(st), len(st))
-        if type(st)==type(s):
-            for t in st:
-                if type(t)==type(s):
-                    for y in t:
-                        print(y)
-                # print(*st)
-                elif type(t)==type(d):
-                    for y in t:
-                        print(y, t[y])
-                else:
-                    print(t)
-            # print(*st)
-        elif type(st)==type(d):
-            for t in st:
-                
-                if type(t)==type(s):
-                    for y in t:
-                        print(y)
-                # print(*st)
-                elif type(t)==type(d):
-                    for y in t:
-                        print(y, t[y])
-                else:
-                    print(t, st[t])
-            # print()
-        else:
-            print(st)
-
-    if q>5:
-        break
-    q+=1
-    
-    
-q=0
-for i in log[0]:
-    print(i)
-    q+=1
-    if q>5:
-        break
-
-x =log[0][('settings', 'https://mw-tst.itsmartflex.com/entity/api/functions/MYVF-SETTINGS', 'put', 2)]
-
-i=0
-s='q'
-
-def dict_reader(dic, x):
-    if len(dic)>0:
-        for d in dic:
-            print(dic[d])
-            if ifDict(dic[d]):
-                print('dict', dict_reader(dic[d], x))
-            if ifList(dic[d]):
-                print('list', list_reader(dic[d],x))
-            print(d)
-            print()
-        return x
-    return 0
-    
-def list_reader(lis, x):
-    x+=1
-    if len(lis)>0:
-        for l in lis:
-            if ifDict(l):
-                print('dict', dict_reader(l,x ))
-            if ifList(l):
-                print('list', list_reader(l, x))
-            print(l)
-            print()
-        return x
-    return 0
-
-           
-def ifIter(v):
-    dictionary = {1:1}
-    lists = [0]
-    if type(v) == type(dictionary) or type(v) == type(lists):
-        return 1
-    else:
-        return 0
-    
-def ifList(v):
-    lists = [0]
-    if type(v) == type(lists) and len(v)>0 :
-        return 1
-    else:
-        return 0
-        
-def ifDict(v):
-    dictionary = {1:1}
-    if type(v) == type(dictionary) and len(v)>0:
-        return 1
-    else:
-        return 0
-    
-def printDict(v0):
-    if ifDict(v0):
-        for k1,v1 in v0.items():
-            return(k1, v1)
-    elif ifList(v0):
-        for v1 in v0:
-            return(v1)
-    else:
-        return(v0)
-         
 q=0     
 for c in  x:
     q+=1
