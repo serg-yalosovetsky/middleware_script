@@ -5,6 +5,7 @@ import xlsxwriter
 import requests, asyncio
 from openpyxl import load_workbook
 
+
 def random_chr(n,m=0,k=1, binary=1):
     if binary:
         rand=''
@@ -15,10 +16,10 @@ def random_chr(n,m=0,k=1, binary=1):
         return rand
     return chr(n)
     
+    
 def url_creator(point, url_d={}, debug=0):
     if url_d!={}:
         
-#         if url_d['point']==token:
                     
         pass
     else:
@@ -63,6 +64,7 @@ def url_creator(point, url_d={}, debug=0):
     log_print(debug, 2, 'url_creator ',url, point)
     
     return url
+
 
 def header_creator(point, token='', debug=0, fil_type = 0, filler= ''):
  
@@ -117,6 +119,7 @@ def header_creator(point, token='', debug=0, fil_type = 0, filler= ''):
     log_print(debug, 4,'header_creator2',point)
     log_print(debug, 5,'header_creator3',headers)
     return headers
+         
               
 def data_creator(s, data = {}):
     if data:    
@@ -125,6 +128,7 @@ def data_creator(s, data = {}):
     else:
             data = {s : s} 
     return data
+ 
  
 def manageRequest(point, verb , token=None, headers={}, data={}, debug=0, log={} ):
     if token==None:
@@ -153,11 +157,13 @@ def many_req_gen(verbs, points, token, data={}, debug=0 ):
             log_print(debug, 4,'many_rew_gen3', 'yield')
             yield x
 
+
 def create_filler(n, s='a'):
     st = ''
     for i in range(n):
         st+= s
     return st
+
 
 def log_print(debug, n, *message):
     if debug>= n:
@@ -211,6 +217,7 @@ def gen_h(point, token, quirks, debug=0):
         while True:
             yield header_creator(point, token, debug)
 
+
 def gen_d(quirks, data={}, debug=0):
     if quirks['change'] == 'data':
         log_print(debug, 4, 'gen_d 0')
@@ -233,7 +240,8 @@ def gen_d(quirks, data={}, debug=0):
     else:
         while True:
             yield data
-            
+     
+           
 def many_req_quirks_gen(verbs, points, token, quirks, data, debug ):
     
     log_print(debug, 4,' many_req_quirks_gen quirks mode')
@@ -255,6 +263,7 @@ def many_req_quirks_gen(verbs, points, token, quirks, data, debug ):
 
                 log_print(debug, 4, ' many_req_quirks_gen', i,n)
             yield x                       
+   
        
 async def _requests(verbs, points, token, quirks=None, headers = {}, data= {}, debug=0):
     if quirks is not None:
@@ -288,6 +297,7 @@ async def _requests(verbs, points, token, quirks=None, headers = {}, data= {}, d
             await session.close()
         except StopIteration as e:
             log_print(debug, 1,'_requests', e, q,filler)
+
 
 def fetchToken(url=None, headers=None, mw = None):
     if mw is None:
@@ -341,8 +351,6 @@ def fetchPass(token = None, url=None, headers=None, mw = None):
     return json_response
 
 
-
-
 def print_elem(dic, key):
     if type(dic) == type(dictionary) and dic.get(key, 0):
         return key
@@ -370,11 +378,13 @@ def is_int(i):
     except:
         return 0
     
+    
 def none_safe_str(s):
     if s is None:
         return s
     else:
         return str(s)
+    
     
 def checkArray(el): #0 str, 1 list, 2 dict, 3 listdict, 4 listlist, 5 dictlist, 6 dictdict
     if isType(el)<2: #isType(): -1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
@@ -401,7 +411,6 @@ def parse_string(s):
             print()
         # if 
 
-example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':5}}]
 
 def parse_str(s,n, pre=' ', dic=0):
     if isType(s)<2:
@@ -416,6 +425,8 @@ def parse_str(s,n, pre=' ', dic=0):
             yield from parse_str(s[c], n, pre+' ', dic+1)
         dic -=1
     
+    
+example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':5}}]
 g = parse_str(resp, 1)
 print(next(g))
 
@@ -460,7 +471,7 @@ workbook.close()
 def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
-    g = parse_str(resp,verbose=verbose)
+    g = parse_str(resp,0)
     # next(g)
     if workbook=='':
         workbook = xlsxwriter.Workbook(filename)
@@ -563,55 +574,10 @@ def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_
     finally:
         if need_close:
             workbook.close()
-        return (workbook,sett,i-x0)
+    return (workbook,sett,i-x0)
 
-filename
-resp
-debug = 0
-describe = 4
-workbook = xlsxwriter.Workbook(filename)
-sett = workbook.add_worksheet('settings')
-counter = 0
-point_counter = 0
-for point in points:
-    counter += 1
-    point_counter += 1
-    sett.write(point_counter + 1, 0, counter)
-    sett.write(point_counter + 1, 1, point)
+
     
-    heads_counter = 0
-    for h,v in header_creator(point, token = token).items():
-        sett.write(point_counter + heads_counter + 1, 3, h)
-        sett.write(point_counter + heads_counter + 1, 4, v)
-        print(h,v,' counter + heads_counter', counter, heads_counter)
-        
-        heads_counter+=1
-        
-    sett.write(point_counter + 1, 5, url)
-    
-    verbs_counter = 0
-    for verb in verbs:
-        sett.write(point_counter + verbs_counter + 1, 2, verb)
-        header = header_creator(point, token = token)
-        url = url_creator(point)
-        r = requests.request(verb, url, headers = header )
-        try:
-            resp = r.json()
-        except Exception as e:
-            print(e)
-            resp = r.text
-        sett.write(point_counter + verbs_counter + 1, 6, r.status_code)
-        # sett.write(i+1+j, 7, str(resp))
-        # l = 0
-        # if ifLD(resp): #респ - словарь или список
-            # sett.write(i+1+j+l, 8, 'list or dict')
-        workbook,sett,resp_counter = write_to_excel(resp,verbose=2, current_worksheet=sett, workbook=workbook,x0=point_counter + verbs_counter + 1,y0=8)
-        # verbs_counter = writing_structure_in_excel(sett, resp, describe, point_counter=point_counter, verbs_counter=verbs_counter, debug=debug)
-        verbs_counter+=resp_counter+1
-    point_counter = point_counter  + max(verbs_counter, heads_counter)                        
-
-workbook.close()
-
         
 def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
@@ -681,10 +647,11 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
             print(5)
     return parsed_data
         
+
 parsed_data = read_data(filename)        
 parsed_data
 filename = 'setting1.xlsx'
-  r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
+r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
         
 parsed_data['points']
 parsed_data['verbs'] 
@@ -725,14 +692,17 @@ write_response_data(parsed_data , filename='response.xlsx')
 def write_2_excel_parsed_data(parsed_data, filename='response.xlsx', sheet_name='response', **kwargs ):
     workbook = xlsxwriter.Workbook(filename = filename)
     worksheet = workbook.add_worksheet(sheet_name)
-    i = 1
-    j = 1  
+    if settings is not None and settings.get('columns_width',0):
+        for c, w in settings['columns_width'].items():
+            worksheet.set_column(int(c), int(c), int(w))
+    counter = 1
+    point_counter = 1  
     for point in parsed_data['points']:
-        worksheet.write( i, j, none_safe_str(point))
-        i1 = i
+        worksheet.write( counter, point_counter, none_safe_str(point))
+        verb_counter = counter
         for verb in parsed_data['verbs'][point]:
-            worksheet.write( i, j+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
-            worksheet.write( i1, j+1, str(verb))
+            worksheet.write( counter, point_counter+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
+            worksheet.write( verb_counter, point_counter+1, str(verb))
             try:
                 if verb=='post' and parsed_data['post_data'][point].get(verb,''):
                     r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=parsed_data['post_data'][point][verb])
@@ -742,22 +712,69 @@ def write_2_excel_parsed_data(parsed_data, filename='response.xlsx', sheet_name=
             except Exception as e:
                 print(e)
                 resp = r.text
-                print(r)
-                worksheet.write( i1, j+6, str(r) )
-            print(resp)
-            worksheet.write( i1, j+7, none_safe_str(resp) )
-            i1 = i1 + 1
-        worksheet.write( i, j+2, *parsed_data['url'][point])
-        i2 = i
+                worksheet.write( verb_counter, point_counter+6, str(r) )
+
+            workbook,worksheet,resp_counter = write_to_excel(resp,verbose=3, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+7)
+            worksheet.write( verb_counter, point_counter+7, none_safe_str(resp) )
+            verb_counter += resp_counter+1
+        worksheet.write( counter, point_counter+2, *parsed_data['url'][point])
+        header_counter = counter
         for h in parsed_data['headers_name'][point]:
-            worksheet.write( i2, j+3, none_safe_str(h))
-            worksheet.write( i2, j+4, none_safe_str(parsed_data['headers_value'][point][h]))
-            i2 = i2 + 1
-        i3 = i
-        i = max(i+1, i1, i2, i3) + 1
+            worksheet.write( header_counter, point_counter+3, none_safe_str(h))
+            worksheet.write( header_counter, point_counter+4, none_safe_str(parsed_data['headers_value'][point][h]))
+            header_counter += 1
+        counter = max(counter+1, verb_counter, header_counter) + 1
     workbook.close()
     
+    
 write_response_data(parsed_data )
+
+
+
+    
+def writer_2_excel(filename, worksheet, ):
+    workbook = xlsxwriter.Workbook(filename)
+    sett = workbook.add_worksheet(worksheet)
+    counter = 0
+    point_counter = 0
+    for point in points:
+        counter += 1
+        point_counter += 1
+        sett.write(point_counter + 1, 0, counter)
+        sett.write(point_counter + 1, 1, point)
+        
+        heads_counter = 0
+        for h,v in header_creator(point, token = token).items():
+            sett.write(point_counter + heads_counter + 1, 3, h)
+            sett.write(point_counter + heads_counter + 1, 4, v)
+            print(h,v,' counter + heads_counter', counter, heads_counter)
+            
+            heads_counter+=1
+            
+        sett.write(point_counter + 1, 5, url)
+        
+        verbs_counter = 0
+        for verb in verbs:
+            sett.write(point_counter + verbs_counter + 1, 2, verb)
+            header = header_creator(point, token = token)
+            url = url_creator(point)
+            r = requests.request(verb, url, headers = header )
+            try:
+                resp = r.json()
+            except Exception as e:
+                print(e)
+                resp = r.text
+            sett.write(point_counter + verbs_counter + 1, 6, r.status_code)
+            # sett.write(i+1+j, 7, str(resp))
+            # l = 0
+            # if ifLD(resp): #респ - словарь или список
+                # sett.write(i+1+j+l, 8, 'list or dict')
+            workbook,sett,resp_counter = write_to_excel(resp,verbose=2, current_worksheet=sett, workbook=workbook,x0=point_counter + verbs_counter + 1,y0=8)
+            # verbs_counter = writing_structure_in_excel(sett, resp, describe, point_counter=point_counter, verbs_counter=verbs_counter, debug=debug)
+            verbs_counter+=resp_counter+1
+        point_counter = point_counter  + max(verbs_counter, heads_counter)                        
+
+    workbook.close()
 
 
 
