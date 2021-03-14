@@ -554,6 +554,7 @@ def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_
     try:
         i=0
         d_prev=0
+        d_max = 0
         s_prev=''
         q=0
         border_prev = ''
@@ -601,6 +602,7 @@ def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_
                 q+=1
             
             d_prev = d
+            d_max = max(d_max, d)
             i_prev = i
             n_prev = n
             s_prev = s
@@ -610,7 +612,8 @@ def write_to_excel(resp, filename='test.xlsx', verbose=10, workbook='', current_
     finally:
         if need_close:
             workbook.close()
-    return (workbook,sett,i-x0)
+    return (workbook, sett, i-x0, d_max - y0)
+
 
 filename = 'setting1.xlsx'
 
@@ -697,6 +700,8 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C40'), vali
             
     return parsed_settings
         
+parsed_settings = read_settings(filename, sheet_name='data')        
+parsed_settings
 
 
         
@@ -769,7 +774,10 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
     return parsed_data
         
 
-parsed_data = read_data(filename)        
+parsed_data = read_data(filename, sheet_name='data')        
+parsed_settings = read_settings(filename, sheet_name='data')        
+parsed_settings
+
 parsed_data
 filename = 'setting1.xlsx'
 r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
@@ -808,9 +816,10 @@ import xlsxwriter
 
 write_response_data(parsed_data , filename='response.xlsx')
 
+write_2_excel_parsed_data(parsed_data, parsed_settings )
     
 
-def write_2_excel_parsed_data(parsed_data, filename='response.xlsx', sheet_name='response', **kwargs ):
+def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', sheet_name='response', **kwargs ):
     workbook = xlsxwriter.Workbook(filename = filename)
     worksheet = workbook.add_worksheet(sheet_name)
     if settings is not None and settings.get('columns_width',0):
@@ -822,7 +831,8 @@ def write_2_excel_parsed_data(parsed_data, filename='response.xlsx', sheet_name=
         worksheet.write( counter, point_counter, none_safe_str(point))
         verb_counter = counter
         for verb in parsed_data['verbs'][point]:
-            worksheet.write( counter, point_counter+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
+            # worksheet.write( counter, point_counter+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
+            workbook,worksheet,resp_counter, y_data_counter = write_to_excel( parsed_data['post_data'][point].get(verb,''), verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
             worksheet.write( verb_counter, point_counter+1, str(verb))
             try:
                 if verb=='post' and parsed_data['post_data'][point].get(verb,''):
@@ -833,10 +843,14 @@ def write_2_excel_parsed_data(parsed_data, filename='response.xlsx', sheet_name=
             except Exception as e:
                 print(e)
                 resp = r.text
-                worksheet.write( verb_counter, point_counter+6, str(r) )
+            
+            worksheet.write( verb_counter, point_counter+y_data_counter+7, str(parsed_data['respnonse_code'][point][verb]) )
 
-            workbook,worksheet,resp_counter = write_to_excel(resp,verbose=3, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+7)
-            worksheet.write( verb_counter, point_counter+7, none_safe_str(resp) )
+            workbook,worksheet,resp_counter, y_resp_counter = write_to_excel(parsed_data['respnonse'][point][verb],verbose=3, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+8)
+
+            worksheet.write( verb_counter, point_counter+y_resp_counter+1+7, str(r) )
+            workbook,worksheet,resp_counter, y_resp_counter = write_to_excel(resp,verbose=3, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+y_resp_counter+1+8)
+
             verb_counter += resp_counter+1
         worksheet.write( counter, point_counter+2, *parsed_data['url'][point])
         header_counter = counter
