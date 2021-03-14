@@ -504,6 +504,7 @@ def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, param='', x0=0, y0=
     return check
 
 
+
 def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
@@ -570,9 +571,6 @@ def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, 
             if i==0:
                 d_prev=d
                 n_prev=n
-                if resp_new!='':
-                    d1=d2
-                    n1=n2
                      
             if q==0:
                 i =x0
@@ -590,7 +588,7 @@ def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, 
                         sett.write(i_prev, d_prev, str(s_prev),border_no_bottom)
 
                     # sett.write(i, d, str(s),border_no_top)
-                    worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, param = border_no_top, x0=i, y0=y0-1): #i,d
+                    worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, param = border_no_top, x0=i, y0=y0-1) #i,d
                     border_prev = 'no top' #устанавливаем "без верхней " для текущей
                     q+=1
                 elif d>d_prev:
@@ -599,17 +597,17 @@ def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, 
                     else: #иначе устанавливаем только "без правой"
                         sett.write(i_prev, d_prev, str(s_prev),border_no_right)
                     # sett.write(i, d, str(s),border_no_left)
-                    worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, param = border_no_left, x0=i, y0=y0-1): #i,d
+                    worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, param = border_no_left, x0=i, y0=y0-1) #i,d
                     border_prev = 'no left'
                     q+=1
                 else:
                     # sett.write(i, d, str(s))
-                    worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, x0=i, y0=y0-1): #i,d
+                    worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, x0=i, y0=y0-1) #i,d
                     border_prev = ''
                     q+=1
             else:
                 # sett.write(i, d, str(s))
-                worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, x0=i, y0=y0-1): #i,d
+                worksheet_write_twice_shift(sett.write, i, d,s, shift, s2, x0=i, y0=y0-1) #i,d
                 border_prev = ''
                 q+=1
             
