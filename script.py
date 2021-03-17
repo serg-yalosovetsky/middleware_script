@@ -394,7 +394,9 @@ def print_elem(dic, key):
         return key + ' ' + dic[key]
 
 
-def isType(e):  #-1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
+def isType(e):  
+    '''-1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
+    '''
     if e is None:
         return -1
     if e == [] or e == {} or e == ():
@@ -513,7 +515,10 @@ def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, param='', x0=0, y0=
         check = 0    
     return check
 
-
+res = '{"getToken": {"error": 0, "values": {"token": "6C08AD5F0D1A3A883545FED46A6F80BE","pukResponse":"","pukCnt":"","roleLic":"Contract Administrator","roleValue":"Администратор «Абонент»","roleDes":"Роль «Администратор «Абонент» предоставляет возможность управлять услугами и сервисами всех номеров на всех лицевых счетах контракта","roleOrder":"5","calcMethod":"PoP","billNumber":"295405598213","rtmAccessToken":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJtc191YWFfY3JlZGVudGlhbF90eXBlX3Bhc3N3b3JkX2p3dCIsInRtZl9tc19yZXNvdXJjZV9wcm9maWxlOlZBTElEQVRFLUlNRUkiLCJ0bWZfbXNfaW50ZXJhY3Rpb25fcHJvZmlsZTpSVE0tVEVDSE5JQ0FMIiwidG1mX21zX2ludGVyYWN0aW9uX3Byb2ZpbGU6UlRNIiwib3BlbmlkIiwidG1mX21zX2FjdGl2YXRpb25fc2VydmljZV90eXBlOkREUy1TWU5DLUFDVElWQVRJT04iLCJ0bWZfbXNfcmVzb3VyY2VfcHJvZmlsZTpBTlRJRlJBVUQtU0lNLUNIQU5HRSIsInRtZl9tc19xdWFsaWZpY2F0aW9uX3Byb2ZpbGU6UlRNOkNSTSIsInRtZl9tc19hY3RpdmF0aW9uX3NlcnZpY2VfdHlwZTpERFMtU1lOQy1ERUFDVElWQVRJT04iXSwiZXhwIjoxNjE1ODE0ODAxLCJhZGRpdGlvbmFsRGV0YWlscyI6eyJtc2lzZG4iOiIzODA5NTIyNDAwMTYifSwiYXV0aG9yaXRpZXMiOlsiUk9MRV9TWVNURU0iXSwianRpIjoiY2E5YTlkMGUtOWIwOC00YTJmLWFjMGYtMjE2ZDkzZDZmYTQ4IiwidGVuYW50IjoiWE0iLCJjbGllbnRfaWQiOiJzdmMtY3JtLW13In0.WfZlUix0QG1gV5L802wklpYbYsV-YeL2I8s5TvUyIaP5KPlgpzYrGJ_rv4WGBPNIFAlESo8awGfkcposMnBKjgqcNJcFh-DGFD6QAPOuvO6j7hn8sgo038JIqYBLvaQeOPCaV3_nJX92S29Y1Cv4D1cCuRjzwpHP5oq6jXk2AlSb-yioJqUzCvTh30k4TeggZl39XOeRqvhcRjPNufJSfS_RNM7B5hr-VvBfNao2GKPIQ4S7dg1-i7w0h_An1PFBPY_js_lfyh3atjudFFb7_cbx3Q5MMo7JT8nS17o6ebl4aca_jnAOfHlvyOiCzy9Ev4qOwJkYEYg7o285QMJzDQ","rtmRefreshToken":"","pin":true,"isShowedPin":false}},"identification": {"error": 0, "values": { "id":""}}}'
+g =parse_str(res,0)
+s,n,d = next(g)
+s
 
 def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
@@ -577,9 +582,9 @@ def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, 
             s,n,d =next(g)
             if resp_new!='':
                 s2,n2,d2 =next(f) 
-                print('*********************')
-                print(s2)
-                print('*********************')
+                # print('*********************')
+                # print(s2)
+                # print('*********************')
                 
             else: s2=''
             d+=y0
@@ -639,132 +644,6 @@ def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, 
             workbook.close()
     return (workbook, sett, i-x0, d_max - y0)
 
-
-
-
-def write_to_excel2(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
-    '''Функция для красивого вывода ответа на запрос в файл екселя
-    '''
-    g = parse_str(resp,0)
-    if resp_new !='':
-        print('++++++++++++++++++++++')
-        f = parse_str(resp_new,0)
-        
-    if workbook=='':
-        workbook = xlsxwriter.Workbook(filename)
-        need_close = 1
-    else:
-        need_close =0
-        
-        
-    if current_worksheet=='':
-        sett = workbook.add_worksheet(new_worksheet)
-    else:
-        sett = current_worksheet
-    # bold = workbook.add_format({'bold': True})
-    if border_draw ==1:
-        border = workbook.add_format()
-        border.set_border(style=1)
-
-        border_no_top = workbook.add_format()
-        border_no_top.set_bottom()
-        border_no_top.set_left()
-        border_no_top.set_right()
-        border_no_topright = workbook.add_format()
-        border_no_topright.set_border(style =3)
-        border_no_topright.set_bottom()
-        border_no_topright.set_left()
-        border_no_left = workbook.add_format()
-        border_no_left.set_border(style =3)
-        border_no_left.set_bottom()
-        border_no_left.set_top()
-        border_no_left.set_right()
-        border_no_right = workbook.add_format()
-        border_no_right.set_border(style =3)
-        border_no_right.set_bottom()
-        border_no_right.set_top()
-        border_no_right.set_left()
-        border_no_bottom = workbook.add_format()
-        border_no_bottom.set_top()
-        border_no_bottom.set_left()
-        border_no_bottom.set_right()
-        border_no_bottomleft = workbook.add_format()
-        border_no_bottomleft.set_border(style =3)
-        border_no_bottomleft.set_top()
-        border_no_bottomleft.set_right()
-
-    try:
-        i=0
-        d_prev=0
-        d_max = 0
-        s_prev=''
-        q=0
-        border_prev = ''
-        while True:
-            s,n,d =next(g)
-            if resp_new!='':
-                s2,n2,d2 =next(f) 
-                print('*********************')
-                print(s2)
-                print('*********************')
-                
-            else: s2=''
-            d+=y0
-            if i==0:
-                d_prev=d
-                n_prev=n
-                     
-            if q==0:
-                i =x0
-                d_prev=d
-                i_prev=i
-            if d>d_prev:
-                i-=1
-            
-            if n == n_prev and q>0: #если уровень списка одинаков для текущего и предыдущего
-                if d==d_prev: #если уровень словаря одинаков для текущего и предыдущего
-                    if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottomleft)
-                            
-                    else: #иначе устанавливаем только  "без нижней"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottom)
-
-                    # sett.write(i, d, str(s),border_no_top)
-                    worksheet_write_twice_shift(sett, i, d,s, shift, s2, param = border_no_top, x0=i, y0=y0-1) #i,d
-                    border_prev = 'no top' #устанавливаем "без верхней " для текущей
-                    q+=1
-                elif d>d_prev:
-                    if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_topright)
-                    else: #иначе устанавливаем только "без правой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_right)
-                    # sett.write(i, d, str(s),border_no_left)
-                    worksheet_write_twice_shift(sett, i, d,s, shift, s2, param = border_no_left, x0=i, y0=y0-1) #i,d
-                    border_prev = 'no left'
-                    q+=1
-                else:
-                    # sett.write(i, d, str(s))
-                    worksheet_write_twice_shift(sett, i, d,s, shift, s2, x0=i, y0=y0-1) #i,d
-                    border_prev = ''
-                    q+=1
-            else:
-                # sett.write(i, d, str(s))
-                worksheet_write_twice_shift(sett, i, d,s, shift, s2, x0=i, y0=y0-1) #i,d
-                border_prev = ''
-                q+=1
-            
-            d_prev = d
-            d_max = max(d_max, d)
-            i_prev = i
-            n_prev = n
-            s_prev = s
-            i+=1
-    except Exception as e:
-        print(e)
-    finally:
-        if need_close:
-            workbook.close()
-    return (workbook, sett, i-x0, d_max - y0)
 
 
 
@@ -947,10 +826,24 @@ resp =  res.replace("'", "\"")
 d= yaml.load(resp)
 repr(res)
 
+parsed_settings
 
+res2 =res
+res3 = json.loads(res2)
+g = parse_str(res3, 0)
+s,n,d = next(g)
+s
 
-
-res
+def serching_and_substitution_variables(s, point, settings):
+    if isType(settings['searching'])==3:
+        for p in settings['searching']:
+            if point == p:
+                for value in settings['searching'][p]:
+                    if value == s:
+                        settings['searching'][p][s]
+    
+    if isType(settings['substitution'])==3:
+        if s == ''
 
 
 
