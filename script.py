@@ -658,17 +658,36 @@ def check_if_cell_is_not_empty(s):
     except Exception as e:
         print(e)
        
-       
 
-def append_list_in_dict(dict_, list_, elem_):
+
+def append_list_in_dict(dict_, list_, elem):
+    print(dict_, list_, elem)
     try:
-        dict_[list_].append(elem_)
+        dict_[list_].append(elem)
     except:
         dict_[list_] = []
-        dict_[list_].append(elem_)
-        
+        dict_[list_].append(elem)
+    return  dict_
+
+def add_record_in_dict(dict_, key, key2, elem):
+    print(dict_, key, key2, elem)
+    try:
+        dict_[key][key2] = elem
+    except:
+        dict_[key] = {}
+        dict_[key][key2] = elem
+    return  dict_
+      
+      
+parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
+append_list_in_dict(parsed_settings['field of response'], c[1].value, c[2].value )
+
+      
+settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
+  
+settings      
        
-def parse_settings_in_read_settings(settings, mode):
+def parse_settings_in_read_settings(settings, c, mode):
     if c[0].value == 'начальная точка': settings['diapasone'].append(c[1].value)
     if c[0].value == 'конечная точка': settings['diapasone'].append(c[1].value)
     if c[0].value == 'уровень раскрытия ответа запроса': settings['verbose_level'] = int(c[1].value)   
@@ -744,7 +763,7 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), val
     except Exception as e:
         printlog('Неверный диапазон значений для парсинга')
     c = [0 for i in range(len(cells) )]
-    parsed_settings = {'diapasone' : [], 'verbose_level' : 0, 'url_mw' : {}, 'url_siebel' : {}, 'how to check response' : '', 'exclude or inlude fields': '',
+    parsed_settings = {'diapasone' : [], 'verbose_level' : 0, 'url_mw' : {}, 'url_siebel' : {}, 'how to check response' : '', 'exclude or include fields': '',
                             'field of response': {},'show type of field in response' : '', 'enter after each element of list': '', 'response in borders':'', 
                             'columns' : {}, 'token-mw' :'', 'token-siebel' :'', 'getter':{}, 'setter':{}}
 
@@ -754,21 +773,30 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), val
         print(c[0].value,c[1].value,c[2].value)
                 
         if check_if_cell_is_not_empty(c[0].value):
-        
-            parsed_settings, mode = parse_settings_in_read_settings(parsed_settings, mode)
-        
-            if mode == 'mode_parse_for_getter':
-                parsed_settings['getter'][c[0].value] = {c[2].value:c[1].value}
-            if mode == 'mode_parse_for_setter':
-                parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
 
-        elif check_if_cell_is_not_empty(c[1].value):
-            if mode == 'mode_exc_or_inc_values_in_cheking_response':
-                append_list_in_dict(parsed_settings['field of response'], [c[1].value], [c[2].value] )
+            if not (mode == 'mode_parse_for_setter' or mode == 'mode_parse_for_getter'):
+                parsed_setings, mode = parse_settings_in_read_settings(parsed_settings, c, mode)
+            else:
+                if mode == 'mode_parse_for_getter':
+                    # parsed_settings['getter'][c[0].value] = {c[2].value:c[1].value}
+                    add_record_in_dict(parsed_settings['getter'], c[0].value, c[2].value, c[1].value)
+                if mode == 'mode_parse_for_setter':
+                    # parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
+                    add_record_in_dict(parsed_settings['setter'], c[0].value, c[2].value, c[1].value)
 
-            if mode == 'mode_parse_columns_width':
-                parsed_settings['columns'][c[1].value] = c[2].value            
-    
+
+        else:
+            if mode == 'mode_parse_for_setter' or mode == 'mode_parse_for_getter':
+                mode = ''
+            
+            if check_if_cell_is_not_empty(c[1].value):
+            
+                if mode == 'mode_exc_or_inc_values_in_cheking_response':
+                    append_list_in_dict(parsed_settings['field of response'], c[1].value, c[2].value )
+
+                if mode == 'mode_parse_columns_width':
+                    parsed_settings['columns'][c[1].value] = c[2].value            
+        
     return parsed_settings
         
 
@@ -780,7 +808,7 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
     if sheet_name == '__active':
         sheet = wb.active
     else: 
-        sheet = wb.get_sheet_by_name(sheet_name)
+        sheet = wb[sheet_name]
     try:
         cells = sheet[diapasone[0]: diapasone[1]]
     except Exception as e:
@@ -844,7 +872,7 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
         
 
 parsed_data = read_data(filename, sheet_name='data')        
-settings = read_settings(filename, sheet_name='data')        
+settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
 settings
 
 
