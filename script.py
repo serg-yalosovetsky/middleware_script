@@ -53,7 +53,7 @@ def random_chr(n,m=0,k=1, binary=1):
     return chr(n)
     
     
-def url_creator(point, url_d={}, debug=0):
+def     url_creator(point, url_d={}, debug=0):
     if url_d!={}:
         
                     
@@ -518,15 +518,15 @@ def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, param='', x0=0, y0=
 res = '{"getToken": {"error": 0, "values": {"token": "6C08AD5F0D1A3A883545FED46A6F80BE","pukResponse":"","pukCnt":"","roleLic":"Contract Administrator","roleValue":"Администратор «Абонент»","roleDes":"Роль «Администратор «Абонент» предоставляет возможность управлять услугами и сервисами всех номеров на всех лицевых счетах контракта","roleOrder":"5","calcMethod":"PoP","billNumber":"295405598213","rtmAccessToken":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJtc191YWFfY3JlZGVudGlhbF90eXBlX3Bhc3N3b3JkX2p3dCIsInRtZl9tc19yZXNvdXJjZV9wcm9maWxlOlZBTElEQVRFLUlNRUkiLCJ0bWZfbXNfaW50ZXJhY3Rpb25fcHJvZmlsZTpSVE0tVEVDSE5JQ0FMIiwidG1mX21zX2ludGVyYWN0aW9uX3Byb2ZpbGU6UlRNIiwib3BlbmlkIiwidG1mX21zX2FjdGl2YXRpb25fc2VydmljZV90eXBlOkREUy1TWU5DLUFDVElWQVRJT04iLCJ0bWZfbXNfcmVzb3VyY2VfcHJvZmlsZTpBTlRJRlJBVUQtU0lNLUNIQU5HRSIsInRtZl9tc19xdWFsaWZpY2F0aW9uX3Byb2ZpbGU6UlRNOkNSTSIsInRtZl9tc19hY3RpdmF0aW9uX3NlcnZpY2VfdHlwZTpERFMtU1lOQy1ERUFDVElWQVRJT04iXSwiZXhwIjoxNjE1ODE0ODAxLCJhZGRpdGlvbmFsRGV0YWlscyI6eyJtc2lzZG4iOiIzODA5NTIyNDAwMTYifSwiYXV0aG9yaXRpZXMiOlsiUk9MRV9TWVNURU0iXSwianRpIjoiY2E5YTlkMGUtOWIwOC00YTJmLWFjMGYtMjE2ZDkzZDZmYTQ4IiwidGVuYW50IjoiWE0iLCJjbGllbnRfaWQiOiJzdmMtY3JtLW13In0.WfZlUix0QG1gV5L802wklpYbYsV-YeL2I8s5TvUyIaP5KPlgpzYrGJ_rv4WGBPNIFAlESo8awGfkcposMnBKjgqcNJcFh-DGFD6QAPOuvO6j7hn8sgo038JIqYBLvaQeOPCaV3_nJX92S29Y1Cv4D1cCuRjzwpHP5oq6jXk2AlSb-yioJqUzCvTh30k4TeggZl39XOeRqvhcRjPNufJSfS_RNM7B5hr-VvBfNao2GKPIQ4S7dg1-i7w0h_An1PFBPY_js_lfyh3atjudFFb7_cbx3Q5MMo7JT8nS17o6ebl4aca_jnAOfHlvyOiCzy9Ev4qOwJkYEYg7o285QMJzDQ","rtmRefreshToken":"","pin":true,"isShowedPin":false}},"identification": {"error": 0, "values": { "id":""}}}'
 g =parse_str(res,0)
 s,n,d = next(g)
-s
 
-def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
+
+def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
-    g = parse_str(resp,0)
+    gen = parse_str(resp,0)
     if resp_new !='':
         print('++++++++++++++++++++++')
-        f = parse_str(resp_new,0)
+        gen_example = parse_str(resp_new,0)
         
     if workbook=='':
         workbook = xlsxwriter.Workbook(filename)
@@ -536,10 +536,9 @@ def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, 
         
         
     if current_worksheet=='':
-        sett = workbook.add_worksheet(new_worksheet)
+        worksheet = workbook.add_worksheet(new_worksheet)
     else:
-        sett = current_worksheet
-    # bold = workbook.add_format({'bold': True})
+        worksheet = current_worksheet
     if border_draw ==1:
         border = workbook.add_format()
         border.set_border(style=1)
@@ -573,84 +572,167 @@ def write_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, 
 
     try:
         i=0
-        d_prev=0
-        d_max = 0
-        s_prev=''
+        shift_right_prev=0
+        shift_right_max = 0
+        str_resp_old=''
         q=0
         border_prev = ''
         while True:
-            s,n,d =next(g)
+            str_resp,shift_down,shift_right =next(gen)
             if resp_new!='':
-                s2,n2,d2 =next(f) 
+                str_resp_old,shift_down_old,shift_right_old =next(gen_example)  #str_resp_prev,n2,d2 =next(gen_example) 
                 # print('*********************')
                 # print(s2)
                 # print('*********************')
                 
-            else: s2=''
-            d+=y0
+            else: str_resp_old=''
+            shift_right+=y0
             if i==0:
-                d_prev=d
-                n_prev=n
+                shift_right_prev=shift_right
+                n_prev=shift_down
                      
             if q==0:
                 i =x0
-                d_prev=d
+                shift_right_prev=shift_right
                 i_prev=i
-            if d>d_prev:
+            if shift_right>shift_right_prev:
                 i-=1
             
-            if n == n_prev and q>0: #если уровень списка одинаков для текущего и предыдущего
-                if d==d_prev: #если уровень словаря одинаков для текущего и предыдущего
+            if shift_down == n_prev and q>0: #если уровень списка одинаков для текущего и предыдущего
+                if shift_right==shift_right_prev: #если уровень словаря одинаков для текущего и предыдущего
                     if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottomleft)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_bottomleft)
                             
                     else: #иначе устанавливаем только  "без нижней"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_bottom)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_bottom)
 
                     # sett.write(i, d, str(s),border_no_top)
-                    worksheet_write_twice_shift(sett, i, d,s, shift, s2, param = border_no_top, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, param = border_no_top, x0=i, y0=y0-1) #i,d
                     border_prev = 'no top' #устанавливаем "без верхней " для текущей
                     q+=1
-                elif d>d_prev:
+                elif shift_right>shift_right_prev:
                     if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_topright)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_topright)
                     else: #иначе устанавливаем только "без правой"
-                        sett.write(i_prev, d_prev, str(s_prev),border_no_right)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_right)
                     # sett.write(i, d, str(s),border_no_left)
-                    worksheet_write_twice_shift(sett, i, d,s, shift, s2, param = border_no_left, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, param = border_no_left, x0=i, y0=y0-1) #i,d
                     border_prev = 'no left'
                     q+=1
                 else:
                     # sett.write(i, d, str(s))
-                    worksheet_write_twice_shift(sett, i, d,s, shift, s2, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, x0=i, y0=y0-1) #i,d
                     border_prev = ''
                     q+=1
             else:
                 # sett.write(i, d, str(s))
-                worksheet_write_twice_shift(sett, i, d,s, shift, s2, x0=i, y0=y0-1) #i,d
+                worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, x0=i, y0=y0-1) #i,d
                 border_prev = ''
                 q+=1
             
-            d_prev = d
-            d_max = max(d_max, d)
+            shift_right_prev = shift_right
+            shift_right_max = max(shift_right_max, shift_right)
             i_prev = i
-            n_prev = n
-            s_prev = s
+            n_prev = shift_down
+            str_resp_old = str_resp
             i+=1
     except Exception as e:
         print(e)
     finally:
         if need_close:
             workbook.close()
-    return (workbook, sett, i-x0, d_max - y0)
+    return (workbook, worksheet, i-x0, shift_right_max - y0)
 
 
 
 
 filename = 'setting1.xlsx'
 
+
+def check_if_cell_is_not_empty(s):
+    try:
+        if s is not None and s != '':
+            return 1
+        else:
+            return 0
+    except Exception as e:
+        print(e)
        
-def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C40'), validate_function=None, **kwargs ):
+       
+
+def append_list_in_dict(dict_, list_, elem_):
+    try:
+        dict_[list_].append(elem_)
+    except:
+        dict_[list_] = []
+        dict_[list_].append(elem_)
+        
+       
+def parse_settings_in_read_settings(settings, mode):
+    if c[0].value == 'начальная точка': settings['diapasone'].append(c[1].value)
+    if c[0].value == 'конечная точка': settings['diapasone'].append(c[1].value)
+    if c[0].value == 'уровень раскрытия ответа запроса': settings['verbose_level'] = int(c[1].value)   
+    if c[0].value == 'url для токена миддлваре': url_for_token_mv = c[1].value
+    if c[0].value == 'генерация токена миддлваре': gen_for_token_mv = c[1].value
+    if c[0].value == 'url для токена сибеля':  url_for_token_siebel = c[1].value            
+    if c[0].value == 'генерация токена сибеля':  gen_for_token_siebel = c[1].value            
+    if c[0].value == 'проверка определения способа подстановки токена': url_for_token_check = c[1].value
+    if c[0].value == 'токен миддлваре': 
+        if c[1].value == 'из точки':
+            settings['url_mw']['from'] = 'from_point_and_url'            
+            settings['url_mw']['from_point'] = c[2].value            
+            settings['url_mw']['from_url'] = url_for_token_mv           
+            settings['url_mw']['how_gen'] = gen_for_token_mv     
+            settings['url_mw']['how_check_url'] = url_for_token_check     
+        if c[1].value == 'взять из клетки':
+            settings['url_mw']['from'] = 'from_cell'            
+            settings['url_mw']['token'] = c[2].value            
+        if c[1].value == 'ничего не делать':
+            settings['url_mw']['from'] = 'nothing'            
+    if c[0].value == 'токен сибель': 
+        if c[1].value == 'из точки':
+            settings['url_siebel']['from'] = 'from_point_and_url'            
+            settings['url_siebel']['from_point'] = c[2].value            
+            settings['url_siebel']['from_url'] = url_for_token_siebel           
+            settings['url_siebel']['how_gen'] = gen_for_token_siebel           
+            settings['url_siebel']['how_check_url'] = url_for_token_check     
+        if c[1].value == 'взять из клетки':
+            settings['url_siebel']['from'] = 'from_cell'            
+            settings['url_siebel']['token'] = c[2].value            
+        if c[1].value == 'ничего не делать':
+            settings['url_siebel']['from'] = 'nothing'            
+
+    if c[0].value == 'старый токен': settings['verbose_level'].append(c[1].value)            
+    if c[0].value == 'проверка совпадения ответа': 
+        if c[1].value == 'простая': 
+            settings['how to check response'] ='simple'            
+        if c[1].value == 'сложная': 
+            settings['how to check response'] = 'complicated'            
+            if c[2].value == 'исключить': 
+                settings['exclude or include fields'] = 'exclude'            
+                mode = 'mode_exc_or_inc_values_in_cheking_response'        
+            if c[2].value == 'включить': 
+                settings['exclude or include fields'] = 'include'    
+                mode = 'mode_exc_or_inc_values_in_cheking_response'        
+    if c[0].value == 'вывод типов полей в ответе': settings['show type of field in response'] = c[1].value            
+    if c[0].value == 'за каждым элементом списка ответов перевод строки ': settings['enter after each element of list'] = c[1].value            
+    if c[0].value == 'ответ в рамочки': settings['response in borders'] = c[1].value            
+    if c[0].value == 'размер столбцов': 
+        mode = 'mode_parse_columns_width'
+        settings['columns'][c[1].value] = c[2].value            
+    if c[0].value == 'получение значений' : 
+        if c[1].value == 'да':
+            mode= 'mode_parse_for_getter'
+            
+    if c[0].value == 'подстановка значений' : 
+        if c[1].value == 'да':
+            mode= 'mode_parse_for_setter'
+            
+    return settings, mode
+    
+     
+       
+def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), validate_function=None, **kwargs ):
     
     wb = load_workbook(filename = filename)
     if sheet_name == '__active':
@@ -663,74 +745,30 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C40'), vali
         printlog('Неверный диапазон значений для парсинга')
     c = [0 for i in range(len(cells) )]
     parsed_settings = {'diapasone' : [], 'verbose_level' : 0, 'url_mw' : {}, 'url_siebel' : {}, 'how to check response' : '', 'exclude or inlude fields': '',
-                            'field of response': [] ,'show type of field in response' : '', 'enter after each element of list': '', 'response in borders':'', 'columns' : {}, 'token-mw' :'', 'token-siebel' :''}
+                            'field of response': {},'show type of field in response' : '', 'enter after each element of list': '', 'response in borders':'', 
+                            'columns' : {}, 'token-mw' :'', 'token-siebel' :'', 'getter':{}, 'setter':{}}
 
-    columns_width = 1
-    exclude_or_include = 0        
+    mode = ''
     i = 0
     for *c, in cells:  
         print(c[0].value,c[1].value,c[2].value)
-        if c[0].value is not None and c[0].value != '':
-            columns_width = 1
-            if c[1].value is not None and c[1].value != '':
-                exclude_or_include = 0        
-            elif exclude_or_include == 1:
-                parsed_settings['field of response'].append(c[2].value)
-        elif columns_width == 1:
-            parsed_settings['columns'][c[1].value] = c[2].value            
-    
-        if c[0].value == 'начальная точка': parsed_settings['diapasone'].append(c[1].value)
-        if c[0].value == 'конечная точка': parsed_settings['diapasone'].append(c[1].value)
-        if c[0].value == 'уровень раскрытия ответа запроса': parsed_settings['verbose_level'] = int(c[1].value)   
-        if c[0].value == 'url для токена миддлваре': url_for_token_mv = c[1].value
-        if c[0].value == 'генерация токена миддлваре': gen_for_token_mv = c[1].value
-        if c[0].value == 'url для токена сибеля':  url_for_token_siebel = c[1].value            
-        if c[0].value == 'генерация токена сибеля':  gen_for_token_siebel = c[1].value            
-        if c[0].value == 'проверка определения способа подстановки токена': url_for_token_check = c[1].value
-        if c[0].value == 'токен миддлваре': 
-            if c[1].value == 'из точки':
-                parsed_settings['url_mw']['from'] = 'from_point_and_url'            
-                parsed_settings['url_mw']['from_point'] = c[2].value            
-                parsed_settings['url_mw']['from_url'] = url_for_token_mv           
-                parsed_settings['url_mw']['how_gen'] = gen_for_token_mv     
-                parsed_settings['url_mw']['how_check_url'] = url_for_token_check     
-            if c[1].value == 'взять из клетки':
-                parsed_settings['url_mw']['from'] = 'from_cell'            
-                parsed_settings['url_mw']['token'] = c[2].value            
-            if c[1].value == 'ничего не делать':
-                parsed_settings['url_mw']['from'] = 'nothing'            
-        if c[0].value == 'токен сибель': 
-            if c[1].value == 'из точки':
-                parsed_settings['url_siebel']['from'] = 'from_point_and_url'            
-                parsed_settings['url_siebel']['from_point'] = c[2].value            
-                parsed_settings['url_siebel']['from_url'] = url_for_token_siebel           
-                parsed_settings['url_siebel']['how_gen'] = gen_for_token_siebel           
-                parsed_settings['url_siebel']['how_check_url'] = url_for_token_check     
-            if c[1].value == 'взять из клетки':
-                parsed_settings['url_siebel']['from'] = 'from_cell'            
-                parsed_settings['url_siebel']['token'] = c[2].value            
-            if c[1].value == 'ничего не делать':
-                parsed_settings['url_siebel']['from'] = 'nothing'            
+                
+        if check_if_cell_is_not_empty(c[0].value):
+        
+            parsed_settings, mode = parse_settings_in_read_settings(parsed_settings, mode)
+        
+            if mode == 'mode_parse_for_getter':
+                parsed_settings['getter'][c[0].value] = {c[2].value:c[1].value}
+            if mode == 'mode_parse_for_setter':
+                parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
 
-        if c[0].value == 'старый токен': parsed_settings['verbose_level'].append(c[1].value)            
-        if c[0].value == 'проверка совпадения ответа': 
-            if c[1].value == 'простая': 
-                parsed_settings['how to check response'] ='simple'            
-            if c[1].value == 'сложная': 
-                parsed_settings['how to check response'] = 'complicated'            
-                if c[2].value == 'исключить': 
-                    parsed_settings['exclude or inlude fields'] = 'exclude'            
-                    exclude_or_include =1        
-                if c[2].value == 'включить': 
-                    parsed_settings['exclude or inlude fields'] = 'include'    
-                    exclude_or_include =1        
-        if c[0].value == 'вывод типов полей в ответе': parsed_settings['show type of field in response'] = c[1].value            
-        if c[0].value == 'за каждым элементом списка ответов перевод строки ': parsed_settings['enter after each element of list'] = c[1].value            
-        if c[0].value == 'ответ в рамочки': parsed_settings['response in borders'] = c[1].value            
-        if c[0].value == 'размер столбцов': 
-            columns_width = 1
-            parsed_settings['columns'][c[1].value] = c[2].value            
-            
+        elif check_if_cell_is_not_empty(c[1].value):
+            if mode == 'mode_exc_or_inc_values_in_cheking_response':
+                append_list_in_dict(parsed_settings['field of response'], [c[1].value], [c[2].value] )
+
+            if mode == 'mode_parse_columns_width':
+                parsed_settings['columns'][c[1].value] = c[2].value            
+    
     return parsed_settings
         
 
@@ -806,8 +844,8 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
         
 
 parsed_data = read_data(filename, sheet_name='data')        
-parsed_settings = read_settings(filename, sheet_name='data')        
-parsed_settings
+settings = read_settings(filename, sheet_name='data')        
+settings
 
 
 
@@ -816,7 +854,7 @@ res = parsed_data['response']['getlinks']['post']
 res = str(res)
 parsed_data['post_data']['getToken'].get('post','')
 parsed_data['url']
-write_2_excel_parsed_data(parsed_data, parsed_settings )
+write_2_excel_parsed_data(parsed_data, settings )
 
 resp
 type(res)
@@ -826,13 +864,20 @@ resp =  res.replace("'", "\"")
 d= yaml.load(resp)
 repr(res)
 
-parsed_settings
+settings
 
 res2 =res
 res3 = json.loads(res2)
 g = parse_str(res3, 0)
 s,n,d = next(g)
 s
+
+
+
+
+
+
+
 
 def serching_and_substitution_variables(s, point, settings):
     if isType(settings['searching'])==3:
@@ -880,7 +925,7 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                 data = json.loads(parsed_data['post_data'][point].get(verb,''))
             except:
                 data = parsed_data['post_data'][point].get(verb,'')
-            workbook,worksheet,resp_counter, y_data_counter = write_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
+            workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
             print('log0')
             worksheet.write( verb_counter, point_counter+1, str(verb))
             try:
@@ -932,7 +977,7 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
             header_counter += 1
         counter = max(counter+1, verb_counter, header_counter) + 1
     workbook.close()
-write_2_excel_parsed_data(parsed_data, parsed_settings )
+write_2_excel_parsed_data(parsed_data, settings )
     
     
     
@@ -1011,4 +1056,4 @@ def init():
     points = ['token', 'settings', 'links', 'relPhone', 'countMain', 'countDpi', 'bonus', 'offer']
     log = [{}, {}]
     asyncio.run( _requests(verbs, points, token,  debug=2 ))
-    write_to_excel('test')
+    _write_response_to_excel('test')
