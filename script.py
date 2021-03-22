@@ -53,7 +53,7 @@ def random_chr(n,m=0,k=1, binary=1):
     return chr(n)
     
     
-def     url_creator(point, url_d={}, debug=0):
+def url_creator(point, url_d={}, debug=0):
     if url_d!={}:
         
                     
@@ -170,14 +170,20 @@ def manageRequest(point, verb , token=None, headers={}, data={}, debug=0, log={}
     if token==None:
         url = url_creator('token', {}, debug)
         headers = header_creator('token', '', debug)
-        r = _requests(url, 'post', headers, data, debug)
+        r = requests.request(method = 'post', url= url, headers=headers)
+        # r = _requests(url, 'post', headers, data, debug)
         token = r.json()["access_token"]
         log_print(debug, 4,'manageRequest token', token)
     
     url = url_creator(point, {}, debug)
     headers = header_creator(point, token, debug)
-    r = _requests(url, verb, headers, data, debug)    
-    return _print(r, verb, url, point, debug, log)    
+    r = requests.request(method = verb, url= url, headers=headers)
+    # r = _requests(url, verb, headers, data, debug)    
+    return (r, verb, url, point, r.json())    
+
+*y, r = manageRequest('offer', 'get')
+y
+r
 
 
 def many_req_gen(verbs, points, token, data={}, debug=0 ):
@@ -645,6 +651,11 @@ def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', ve
 
 
 
+*y, r = manageRequest('token', 'get')
+y
+r
+header_creator('offer', 'get')
+
 
 filename = 'setting1.xlsx'
 
@@ -800,7 +811,49 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), val
     return parsed_settings
         
 
+                def parse_2_dict(*args):
+                    s = ''
+                    i=1
+                    if len(args)==1:
+                        return args[0]
+                    for a in args:
+                        if i==1:
+                            i+=1
+                            continue
+                        s += '{"'+a+'":'
+                        i+=1
+                    for j in range(i):
+                        s+='}'
+                    return s
 
+
+token = fetchToken()
+resp_sett = requests.get(url_creator('token'), header_creator('token'))
+resp_sett
+gettoken
+token
+ 
+ 
+def json_parse(s):
+    if s=='':
+        return s
+    try:
+        str_json = json.loads( s.replace("'",'"'))
+    except:
+        try:
+            q0 = s.find('"')
+            q1 = s.rfind('"')
+            print(q0,q1)
+            print(s)
+            s = s[:q0]+ s[q0:q1].replace("'",  '') +s[q1:]
+            s = s.replace("'", '"')
+            print(s)
+            str_json = yaml.load(s)
+        except Exception as e:
+            print(e)
+            str_json = 'json decode error, maybe unexpectend of string'
+    return str_json
+ 
         
 def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
@@ -814,7 +867,8 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
     except Exception as e:
         printlog('Неверный диапазон значений для парсинга')
     c = [0 for i in range(len(cells) )]
-    parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'url' : {}, 'post_data':{}, 'response' : {}, 'response_code' : {}, 'token' :0}
+    parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'url' : {}, 
+                   'post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
 
     i = 0
     for *c, in cells:  
@@ -837,43 +891,184 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
             parsed_data['response_code'][c[1].value] = {}
             parsed_data['response_code'][c[1].value][c[2].value] = c[7].value
             parsed_data['response'][c[1].value] = {}
-            parsed_data['response'][c[1].value][c[2].value] = c[8].value
-            # if validate_function is not None:
-                # if not validate_function(parsed_data):
-                    # raise Error #ToDo
-            
+            parsed_data['response'][c[1].value][c[2].value] = c[8].value                
+            parsed_data['parsed_response'][c[1].value] = {}
+            s = c[8].value
+            try:
+                str_json = json_parse(s)
+            except Exception as e:
+                print(e)
+                str_json = ''
+            parsed_data['parsed_response'][c[1].value][c[2].value] = str_json                
+                
         elif last_point is not None:
             if c[2].value is not None:
                 parsed_data['verbs'][last_point].append(c[2].value)
             if c[3].value is not None:
                 parsed_data['headers_name'][last_point].append(c[3].value)
                 if c[4].value is not None:
-                    if  c[4].value == 'Bearer' or c[4].value == 'Bearer ':
-                        if new_token == 1:
-                            token = fetchToken()
-                        parsed_data['headers_value'][last_point][c[3].value] = c[4].value + ' ' + token
-                        
-                    else:
-                        parsed_data['headers_value'][last_point][c[3].value] = c[4].value
-            print(1)
+                    parsed_data['headers_value'][last_point][c[3].value] = c[4].value
             if c[5].value is not None:
                 parsed_data['url'][last_point].append(c[5].value)
-            print(2)
             if c[6].value is not None:
                 parsed_data['post_data'][last_point].append(c[6].value)
-            print(3)
             if c[7].value is not None:
                 parsed_data['response_code'][last_point][c[2].value] = c[7].value
-            print(4)
             if c[8].value is not None:
                 parsed_data['response'][last_point][c[2].value] = c[8].value
-            print(5)
+                s = c[8].value
+                try:
+                    str_json = json_parse(s)
+                except Exception as e:
+                    print(e)
+                    str_json = ''
+                parsed_data['parsed_response'][last_point][c[2].value] = str_json  
+            
     return parsed_data
         
 
+
 parsed_data = read_data(filename, sheet_name='data')        
+
+s='{"error": "method_not_allowed", "error_description": "Request method "GET" not supported"}'
+json.loads(s)
+
+
 settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
 settings
+
+
+parsed_data['headers_value']
+parsed_data['points']
+parsed_data['post_data']
+list(settings['getter'].keys())
+list(parsed_data['response']['token'].items())
+list(parsed_data['parsed_response']['token'].items())
+list(settings['getter'].items())
+
+list(parsed_data['parsed_response']['token'].items())
+parsed_data['parsed_response']['token']
+
+for i in parsed_data['parsed_response']['token']:
+    print(i)
+    print(parsed_data['parsed_response']['token'][i])
+    
+list(parsed_data['response']['token'].items())
+
+setters = {}
+getters = {}
+
+for points in parsed_data['parsed_response']:
+    for verbs in parsed_data['parsed_response'][points]:
+        print(points, verbs)
+        print(parsed_data['parsed_response'][points][verbs])
+        print(type(parsed_data['parsed_response'][points][verbs]))
+        print()
+        print()
+        
+        for keys in parsed_data['parsed_response'][points][verbs]:
+
+
+            if keys in settings['getter']:
+                for m in settings['getter'][keys]:
+                    print('point=',points, verbs, keys, '  var=', m, '  ref=', settings['getter'][points][m])
+                    if settings['getter'][verbs][m] in parsed_data['parsed_response'][points]:
+                        print('|||||||||')
+                    
+            # print(hv, m)
+            
+
+'token_mw' in dict(settings['getter']['token'].items())
+
+
+
+                
+def fillin_getters():             
+    
+    
+    for points in parsed_data['parsed_response']:
+        if points in settings['getter'].keys():
+            print()
+            print()
+            print(points, settings['getter'][points])
+            
+            for verbs in parsed_data['parsed_response'][points]:
+                if isType(parsed_data['parsed_response'][points][verbs]) >=2:
+                    for r in parsed_data['parsed_response'][points][verbs]:
+                        if isType(parsed_data['parsed_response'][points][verbs][r]) >=2:
+                            for re in parsed_data['parsed_response'][points][verbs][r]:
+                                if isType(parsed_data['parsed_response'][points][verbs][r][re]) >=2:
+                                    for res in parsed_data['parsed_response'][points][verbs][r][re]:
+                                        # print('res',res,'point',points)
+                                        if settings['getter'].get(points,0):
+                                            # print('            ',res, points, settings['getter'][points])
+                                            if res in list(*settings['getter'][points].items()):
+                                                # print('res',res, 'settings[getter][points]', settings['getter'][points].keys(),'point',points)
+                                                # print(parsed_data['parsed_response'][points][verbs][r][re][res])
+                                                alias = list(settings['getter'][points].keys())[0]
+                                                getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]
+                                                
+                                                
+                                                # print('||||||||||')
+                                else:
+                                    # print('       ','re',re,'point',points)
+                                    if settings['getter'].get(points,0):
+                                        if re in list(*settings['getter'][points].items()):
+                                            # print('re',re, 'settings[getter][points]', settings['getter'][points].keys(), 'point',points)
+                                            # print(parsed_data['parsed_response'][points][verbs][r][re])
+                                            alias = list(settings['getter'][points].keys())[0]
+                                            getters[alias] = parsed_data['parsed_response'][points][verbs][r][re]
+                                            
+                                            # print('||||||||||')
+ 
+                        else:
+                            # print('  ','r',r,'point',points)
+                            if settings['getter'].get(points,0):
+                                if r in list(*settings['getter'][points].items()):
+                                    # print('r',r, 'settings[getter][points]', *list(settings['getter'][points].keys())  , 'point',points)
+                                    alias = list(settings['getter'][points].keys())[0]
+                                    getters[alias] = parsed_data['parsed_response'][points][verbs][r]
+                                    # print(*list(settings['getter'][points].keys()), settings['getter'][points][alias]  )
+                                    # print(parsed_data['parsed_response'][points][verbs][r])
+                                    # print('||||||||||') 
+ 
+ 
+ getters
+ 
+if settings['getter'].get(point,0):
+                    
+                    
+                    
+                    
+                    
+                    
+print(settings['getter'][''])
+                    
+settings['getter']
+          
+          
+            
+for hv in parsed_data['post_data']:
+    if hv in list(settings['getter'].keys()):
+        for m in list(settings['getter'][hv].keys()):
+            print(hv, m)
+        # print(hv)
+        
+        
+for pd in parsed_data['post_data']:
+    if pd in list(settings['setter'].keys()):
+        print(pd)
+    
+
+    
+print( list(settings['setter'].keys()))
+
+
+for pd in parsed_data:
+    print(pd)
+
+
+
 
 
 
@@ -889,18 +1084,20 @@ type(res)
 dict(res)
 import json,yaml
 resp =  res.replace("'", "\"")
-d= yaml.load(resp)
+d= yaml.load(s)
 repr(res)
 
 settings
 
 res2 =res
-res3 = json.loads(res2)
+res3 = json.loads(s3.replace("'", '"'))
+res3.keys()
+s2 = '{"loginV2": {"error": 0, "values": {"tempToken": "8DBA35BBA4C486592B1BCC0A984DC5BE"}},"identification": {"error": 0, "values": { "id":""}}}'
 g = parse_str(res3, 0)
 s,n,d = next(g)
 s
-
-
+s2
+s3 = "{'access_token': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJvcGVuaWQiXSwiZXhwIjoxNjE2NDUwMzI4LCJhdXRob3JpdGllcyI6WyJTVVBFUi1BRE1JTiJdLCJqdGkiOiIyZmNhY2MzYy1mM2I0LTQzNmQtYTYyZC01ZmFlZjdmMGY0YjUiLCJ0ZW5hbnQiOiJYTSIsImNsaWVudF9pZCI6ImludGVybmFsIn0.AaK7IxOhYdjTTvDtx2qa1ndyhjhZN11teSECFcobBnQ8fdIBvsOZzOwqbYv5Kw7cPhh8kGxi5OKjFQqYQjiXIeZFpDf6BzKOvwBu2QUskdFxITpnuLxXrwhemXNHbsuLn1M46LOEmRqYJ8nl6QHEZyEB8SePSNZIWBHCUbGJKWIMoMxdB6PjQjnSSw0WbHsYj4petYEVn56pj3sppyxpr3vppjF3HWM7XtoNvzee9P6fLaKtwuEgDfOXbUYGRNiYPttkV5sR7UjWaEOd4zIklsu2vOetrojiteeVtUALCaUqNaYUoczfRMbvHdeucetrD5Lsi8wmN2oTbvM1Falmzg', 'token_type': 'bearer', 'expires_in': 86399, 'scope': 'openid', 'tenant': 'XM', 'jti': '2fcacc3c-f3b4-436d-a62d-5faef7f0f4b5'}"
 
 
 
