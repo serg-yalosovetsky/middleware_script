@@ -824,9 +824,8 @@ def wrapper_for_json_parse(value):
         print(e)
         str_json = ''
     return str_json
-            
         
-def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
+def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
     wb = load_workbook(filename = filename)
     if sheet_name == '__active':
@@ -834,7 +833,11 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
     else: 
         sheet = wb[sheet_name]
     try:
-        cells = sheet[diapasone[0]: diapasone[1]]
+        if settings == '':
+            cells = sheet[diapasone[0]: diapasone[1]]
+        else:
+            cells = sheet[settings['diapasone'][0]: settings['diapasone'][1]]
+            
     except Exception as e:
         print('Неверный диапазон значений для парсинга')
     c = [0 for i in range(len(cells) )]
@@ -877,6 +880,8 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
                 parsed_data['headers_name'][last_point].append(c[3].value)
                 if c[4].value is not None:
                     parsed_data['headers_value'][last_point][c[3].value] = c[4].value
+                else:
+                    parsed_data['headers_value'][last_point][c[3].value] = ''
             if c[5].value is not None:
                 parsed_data['url'][last_point].append(c[5].value)
             if c[6].value is not None:
@@ -892,7 +897,7 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
         
 parsed_data['headers_value']['token']
 
-parsed_data = read_data(filename='setting1.xlsx', sheet_name='data')    
+parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
 
 for p in parsed_data['headers_name']:
     print(parsed_data['headers_name'][p])
@@ -976,25 +981,47 @@ def filling_getters(settings, parsed_data, getters ):
                             for re in parsed_data['parsed_response'][points][verbs][r]:
                                 if isType(parsed_data['parsed_response'][points][verbs][r][re]) >=2:
                                     for res in parsed_data['parsed_response'][points][verbs][r][re]:
-                                        if settings['getter'].get(points,0):
-                                            if res in list(settings['getter_inv'][points].keys()):
-                                                alias = list(settings['getter'][points].keys())[0]
-                                                getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]
-                                                
+                                        if isType(parsed_data['parsed_response'][points][verbs][r][re][res]) >=2:
+                                            for resp in parsed_data['parsed_response'][points][verbs][r][re][res]:
+                                                if isType(parsed_data['parsed_response'][points][verbs][r][re][res][resp]) >=2:
+                                                    for respo in parsed_data['parsed_response'][points][verbs][r][re][res][resp]:
+                                                        if points == 'loginV2':print(respo)
+                                                        if settings['getter'].get(points,0):
+                                                            if respo in list(settings['getter_inv'][points].keys()):
+                                                                alias = list(settings['getter'][points].keys())[0]
+                                                                getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res][resp][respo]
+                                                else:
+                                                    if points == 'loginV2':print(resp)
+                                                    
+                                                    if settings['getter'].get(points,0):    
+                                                        if resp in list(settings['getter_inv'][points].keys()):
+                                                            alias = list(settings['getter'][points].keys())[0]
+                                                            getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][resp]                   
+                                        else:
+                                            if points == 'loginV2':print(res)
+                                            
+                                            if settings['getter'].get(points,0):    
+                                                if res in list(settings['getter_inv'][points].keys()):
+                                                    alias = list(settings['getter'][points].keys())[0]
+                                                    getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]      
                                 else:
+                                    if points == 'loginV2':print(re)
+                                    
                                     if settings['getter'].get(points,0):
                                         if re in list(settings['getter_inv'][points].keys()):
                                             alias = list(settings['getter'][points].keys())[0]
                                             getters[alias] = parsed_data['parsed_response'][points][verbs][r][re]
  
                         else:
+                            if points == 'loginV2':print(r)
+                            
                             if settings['getter'].get(points,0):
                                 if r in list(settings['getter_inv'][points].keys()):
                                     alias = list(settings['getter'][points].keys())[0]
                                     getters[alias] = parsed_data['parsed_response'][points][verbs][r]
     return getters
  
- 
+points = 'loginV2'
 def filling_setters(settings, setters, getters):
     
     for sett in settings['setter']:
@@ -1013,6 +1040,7 @@ def filling_setters(settings, setters, getters):
                 setters[set] = set
     return setters
  
+setters
 
 settings['getter'].keys()
 settings['getter']
@@ -1111,102 +1139,63 @@ def parse_dict(s, list_, parent=[], n=0, dic=0):
         dic -=1
     
 list(settings['setter_inv'].items())
+parsed_data['headers_value']
+setters
+parsed_data['headers_name']#['offers']
 
 
 def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
 
+    for p in settings['setter_inv']:
+        print(p)
+        key = list(settings['setter_inv'][p].keys())
+        lis = list(parsed_data['headers_value'].get(p, 0).keys())
+        for k in key:
+            print(f'key={key}, {k} in {lis}, {k in lis}')
+            if k in lis:
+                print()
+                parsed_data['headers_value'][p][k] = setters[settings['setter_inv'][p][k]] 
+                print()
+            print()
 
-    for field in field_for_subst:
-        print(1)
-        for points in parsed_data[field]:
-            print(2)
-            if points in settings['setter_inv'].keys():
-                print(3)
-                n=10
-                if field == 'parsed_post_data':
-                    print(parsed_data[field][points]['post'], list(settings['setter_inv'][points].keys()))
-                    g = parse_dict(parsed_data[field][points]['post'], list(settings['setter_inv'][points].keys()))
-                else:
-                    print(parsed_data[field][points], list(settings['setter_inv'][points].keys()))
-                    g = parse_dict(parsed_data[field][points], list(settings['setter_inv'][points].keys()))
+    for p in settings['setter_inv']:
+        print(p)
+        key = list(settings['setter_inv'][p].keys())
+        lis = parsed_data['post_data'].get(p, 0).items()
+        if lis != 0:
+            for li_k, li_v in parsed_data['parsed_post_data'].get(p, 0).items():
+                # print('key')
+                # print(li_k)
+                # print(li_v)
                 try:
-                    print(list(settings['setter_inv'][points].keys()))
-                    while n>0:
-                        m, parent = next(g)
-                        if m !='':
-                            print("||||||||||||||||||||||||||")
-                            print('parent', m, parent)
-                            print()
-                            print()
-                            print(parsed_data[field][points])
-                            print(list(parent)[0])
-                            print(1, parsed_data[field][points][parent[0]])
-                            print("||||||||||||||||||||||||||")
-                    n-=1
-                except Exception as e:
-                    print(e)
-                # if isType(parsed_data[field][points]) >=2:
-                #     print(4)
-                #     if field == 'parsed_post_data':
-                #         for verb in parsed_data[field][points]:
-                #             # sinker(v[verb])    
-                                                 
-                    # else:
-                        # sinker(v)                         
-                        
-        
-
-def sinker(v):
-
-    for r in v:
-        print(5)
-        print(isType(v[r]))
-        print(type(v[r]))
-        if isType(v[r]) >=2 :
-            # print(r, type(v), len(v))
-            print(6)
-            for re in v[r]:
-                print(17)
-                if isType(v[r][re]) >=2:
-                    print(18)
-                    for res in v[r][re]:
-                        # print('settings[setter]', settings['setter'].keys(), points)
-                        if settings['setter'].get(points,0):
-                            if res in list(settings['setter_inv'][points].keys()):
-                                alias = settings['setter_inv'][points]
-                                print('res=', res)
-                                print(v[r][re][res])
-                                print('alias', alias)
-                                # v[r][re][res] = alias #settings['setter_inv'][points][res]
-                else:
-                    print(21)
-                    if settings['setter'].get(points,0):
-                        if re in list(*settings['setter'][points].items()):
-                            alias = list(settings['setter'][points].keys())[0]
-                            # getters[alias] = v[r][re]
-                            print('alias', alias)
-        else:
-            print(101)
-            if settings['setter'].get(points,0):
-                print(111)
-                if r in list(settings['setter'][points].items()):
-                    print(121)
-                    alias = list(settings['setter'][points].keys())[0]
-                    # setters[alias] = v[r]
-                    print('alias', alias)
+                    _ = li_v.items()
+                    for l_k, l_v in li_v.items():
+                        try:
+                            _ = l_v.items()
+                            
+                            
+                            for _k, _v in l_v.items():
+                                if p=='getRelPhone':
+                                    print(f'|             {_v}     |{_k}')
+                                
+                                print(f'|point {p}, value {_v}, {_k} in {key}, {_k in key}')
+                                if _k in key:
+                                    print()
+                                    print("_k", _k)
+                                    # parsed_data['parsed_post_data'][p][_k] = setters[settings['setter_inv'][p][_k]] 
+                                    print ("parsed_data['parsed_post_data'][p][li_k][l_k][_k]", parsed_data['parsed_post_data'][p][li_k][l_k][_k]) 
+                                    print("setters[settings['setter_inv'][p][_k]]", settings['setter_inv'][p][_k], p, _k) 
+                                    print()
+                                print()
+                        except: pass
+                except: pass
 
 
-
-
-
-
-
-
-
-
+parsed_data['headers_value']
+settings['setter_inv']['getRelPhone']
 if settings['getter'].get(point,0):
-                    
-                    
+setters['{{phone}}']                
+setters  
                     
                     
                     
