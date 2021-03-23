@@ -776,7 +776,7 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), val
     c = [0 for i in range(len(cells) )]
     parsed_settings = {'diapasone' : [], 'verbose_level' : 0, 'url_mw' : {}, 'url_siebel' : {}, 'how to check response' : '', 'exclude or include fields': '',
                             'field of response': {},'show type of field in response' : '', 'enter after each element of list': '', 'response in borders':'', 
-                            'columns' : {}, 'token-mw' :'', 'token-siebel' :'', 'getter':{}, 'setter':{}}
+                            'columns' : {}, 'token-mw' :'', 'token-siebel' :'', 'getter':{}, 'setter':{}, 'getter_inv':{}, 'setter_inv':{}}
 
     mode = ''
     i = 0
@@ -791,9 +791,11 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), val
                 if mode == 'mode_parse_for_getter':
                     # parsed_settings['getter'][c[0].value] = {c[2].value:c[1].value}
                     add_record_in_dict(parsed_settings['getter'], c[0].value, c[2].value, c[1].value)
+                    add_record_in_dict(parsed_settings['getter_inv'], c[0].value, c[1].value, c[2].value)
                 if mode == 'mode_parse_for_setter':
                     # parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
                     add_record_in_dict(parsed_settings['setter'], c[0].value, c[2].value, c[1].value)
+                    add_record_in_dict(parsed_settings['setter_inv'], c[0].value, c[1].value, c[2].value)
 
 
         else:
@@ -811,20 +813,20 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), val
     return parsed_settings
         
 
-                def parse_2_dict(*args):
-                    s = ''
-                    i=1
-                    if len(args)==1:
-                        return args[0]
-                    for a in args:
-                        if i==1:
-                            i+=1
-                            continue
-                        s += '{"'+a+'":'
-                        i+=1
-                    for j in range(i):
-                        s+='}'
-                    return s
+def parse_2_dict(*args):
+    s = ''
+    i=1
+    if len(args)==1:
+        return args[0]
+    for a in args:
+        if i==1:
+            i+=1
+            continue
+        s += '{"'+a+'":'
+        i+=1
+    for j in range(i):
+        s+='}'
+    return s
 
 
 token = fetchToken()
@@ -983,7 +985,7 @@ for points in parsed_data['parsed_response']:
 
 
                 
-def fillin_getters(settings, parsed_data, getters ):             
+def filling_getters(settings, parsed_data, getters ):             
     
     for points in parsed_data['parsed_response']:
         if points in settings['getter'].keys():
@@ -995,28 +997,25 @@ def fillin_getters(settings, parsed_data, getters ):
                                 if isType(parsed_data['parsed_response'][points][verbs][r][re]) >=2:
                                     for res in parsed_data['parsed_response'][points][verbs][r][re]:
                                         if settings['getter'].get(points,0):
-                                            if res in list(*settings['getter'][points].items()):
+                                            if res in list(settings['getter_inv'][points].keys()):
                                                 alias = list(settings['getter'][points].keys())[0]
                                                 getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]
                                                 
                                 else:
                                     if settings['getter'].get(points,0):
-                                        if re in list(*settings['getter'][points].items()):
+                                        if re in list(settings['getter_inv'][points].keys()):
                                             alias = list(settings['getter'][points].keys())[0]
                                             getters[alias] = parsed_data['parsed_response'][points][verbs][r][re]
  
                         else:
                             if settings['getter'].get(points,0):
-                                if r in list(*settings['getter'][points].items()):
+                                if r in list(settings['getter_inv'][points].keys()):
                                     alias = list(settings['getter'][points].keys())[0]
                                     getters[alias] = parsed_data['parsed_response'][points][verbs][r]
+    return getters
  
  
-getters
-setters
- 
-def fill_for_setters():
-    
+def filling_setters(settings, setters, getters):
     
     for sett in settings['setter']:
         for set in settings['setter'][sett]: 
@@ -1032,14 +1031,54 @@ def fill_for_setters():
                 setters[set] = set[:i0] + getters[set[i0+2:i1]] + set[i1+2:]
             else:
                 setters[set] = set
-            # if var[:2]
+    return setters
+ 
+
+settings['getter'].keys()
+settings['getter']
+settings['getter_inv']
+settings['setter']
+settings['setter_inv']
+parsed_data['post_data']
+getters
 setters
- 
- 
- 
- 
- 
- 
+settings['getter']['token']   
+list(settings['setter_inv']['getRelPhone'].keys())
+         
+def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
+    
+    for field in field_for_subst:
+        for points in parsed_data[field]:
+            if points in settings['getter'].keys():
+                for verbs in parsed_data[field][points]:
+                    if isType(parsed_data[field][points][verbs]) >=2:
+                        for r in parsed_data[field][points][verbs]:
+                            if isType(parsed_data[field][points][verbs][r]) >=2:
+                                for re in parsed_data[field][points][verbs][r]:
+                                    if isType(parsed_data[field][points][verbs][r][re]) >=2:
+                                        for res in parsed_data[field][points][verbs][r][re]:
+                                            if settings['getter'].get(points,0):
+                                                if res in list(settings['getter_inv'][points].keys()):
+                                                    alias = settings['setter_inv'][points]
+                                                    # getters[alias] = 
+                                                    print('res=', res)
+                                                    parsed_data[field][points][verbs][r][re][res] = alias #settings['setter_inv'][points][res]
+                                                    # setters[alias]
+                                                    
+                                    else:
+                                        if settings['getter'].get(points,0):
+                                            if re in list(*settings['getter'][points].items()):
+                                                alias = list(settings['getter'][points].keys())[0]
+                                                getters[alias] = parsed_data[field][points][verbs][r][re]
+    
+                            else:
+                                if settings['getter'].get(points,0):
+                                    if r in list(*settings['getter'][points].items()):
+                                        alias = list(settings['getter'][points].keys())[0]
+                                        getters[alias] = parsed_data[field][points][verbs][r]
+    
+    
+    
 if settings['getter'].get(point,0):
                     
                     
