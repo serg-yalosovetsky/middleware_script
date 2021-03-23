@@ -983,15 +983,10 @@ for points in parsed_data['parsed_response']:
 
 
                 
-def fillin_getters():             
-    
+def fillin_getters(settings, parsed_data, getters ):             
     
     for points in parsed_data['parsed_response']:
         if points in settings['getter'].keys():
-            print()
-            print()
-            print(points, settings['getter'][points])
-            
             for verbs in parsed_data['parsed_response'][points]:
                 if isType(parsed_data['parsed_response'][points][verbs]) >=2:
                     for r in parsed_data['parsed_response'][points][verbs]:
@@ -999,41 +994,51 @@ def fillin_getters():
                             for re in parsed_data['parsed_response'][points][verbs][r]:
                                 if isType(parsed_data['parsed_response'][points][verbs][r][re]) >=2:
                                     for res in parsed_data['parsed_response'][points][verbs][r][re]:
-                                        # print('res',res,'point',points)
                                         if settings['getter'].get(points,0):
-                                            # print('            ',res, points, settings['getter'][points])
                                             if res in list(*settings['getter'][points].items()):
-                                                # print('res',res, 'settings[getter][points]', settings['getter'][points].keys(),'point',points)
-                                                # print(parsed_data['parsed_response'][points][verbs][r][re][res])
                                                 alias = list(settings['getter'][points].keys())[0]
                                                 getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]
                                                 
-                                                
-                                                # print('||||||||||')
                                 else:
-                                    # print('       ','re',re,'point',points)
                                     if settings['getter'].get(points,0):
                                         if re in list(*settings['getter'][points].items()):
-                                            # print('re',re, 'settings[getter][points]', settings['getter'][points].keys(), 'point',points)
-                                            # print(parsed_data['parsed_response'][points][verbs][r][re])
                                             alias = list(settings['getter'][points].keys())[0]
                                             getters[alias] = parsed_data['parsed_response'][points][verbs][r][re]
-                                            
-                                            # print('||||||||||')
  
                         else:
-                            # print('  ','r',r,'point',points)
                             if settings['getter'].get(points,0):
                                 if r in list(*settings['getter'][points].items()):
-                                    # print('r',r, 'settings[getter][points]', *list(settings['getter'][points].keys())  , 'point',points)
                                     alias = list(settings['getter'][points].keys())[0]
                                     getters[alias] = parsed_data['parsed_response'][points][verbs][r]
-                                    # print(*list(settings['getter'][points].keys()), settings['getter'][points][alias]  )
-                                    # print(parsed_data['parsed_response'][points][verbs][r])
-                                    # print('||||||||||') 
  
  
- getters
+getters
+setters
+ 
+def fill_for_setters():
+    
+    
+    for sett in settings['setter']:
+        for set in settings['setter'][sett]: 
+            print('set= ', set)
+            var = settings['setter'][sett][set]
+            print('var= ', var)
+            i0 = set.find('{{')
+            i1 = set.find('}}')
+            print('io i1 ', i0, i1)
+            if i0>=0 and i1>=0 :
+                print('set[i0+2:i1]', set[i0+2:i1])
+                print(set[:i0], getters[set[i0+2:i1]], set[i1+2:], sep='')
+                setters[set] = set[:i0] + getters[set[i0+2:i1]] + set[i1+2:]
+            else:
+                setters[set] = set
+            # if var[:2]
+setters
+ 
+ 
+ 
+ 
+ 
  
 if settings['getter'].get(point,0):
                     
