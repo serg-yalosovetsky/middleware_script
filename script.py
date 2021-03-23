@@ -183,7 +183,6 @@ def manageRequest(point, verb , token=None, headers={}, data={}, debug=0, log={}
     return (r, verb, url, point, r.json())    
 
 
-
 def many_req_gen(verbs, points, token, data={}, debug=0 ):
     
     for point in points:
@@ -229,7 +228,6 @@ def gen_u(point, quirks, debug=0):
     else:
         while True:
             yield url_creator(point, {}, debug)
- 
  
  
 def gen_h(point, token, quirks, debug=0):
@@ -802,7 +800,7 @@ token
  
  
 def json_parse(s):
-    if s=='':
+    if s=='' or s is None:
         return s
     try:
         str_json = json.loads( s.replace("'",'"'))
@@ -810,17 +808,23 @@ def json_parse(s):
         try:
             q0 = s.find('"')
             q1 = s.rfind('"')
-            print(q0,q1)
-            print(s)
             s = s[:q0]+ s[q0:q1].replace("'",  '') +s[q1:]
             s = s.replace("'", '"')
-            print(s)
             str_json = yaml.load(s)
         except Exception as e:
             print(e)
             str_json = 'json decode error, maybe unexpectend of string'
     return str_json
  
+def wrapper_for_json_parse(value):
+    s = value
+    try:
+        str_json = json_parse(s)
+    except Exception as e:
+        print(e)
+        str_json = ''
+    return str_json
+            
         
 def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
@@ -834,7 +838,7 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
     except Exception as e:
         print('Неверный диапазон значений для парсинга')
     c = [0 for i in range(len(cells) )]
-    parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'parsed_headers_value' : {}, 'url' : {}, 
+    parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'url' : {}, 
                    'post_data':{}, 'parsed_post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
 
     i = 0
@@ -851,38 +855,19 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
             parsed_data['headers_name'][c[1].value].append(c[3].value)
             parsed_data['headers_value'][c[1].value] = {}
             parsed_data['headers_value'][c[1].value][c[3].value] = c[4].value
-            parsed_data['parsed_headers_value'][c[1].value] = {}
-            s = c[4].value
-            try:
-                str_json = json_parse(s)
-            except Exception as e:
-                print(e)
-                str_json = ''
-            parsed_data['parsed_headers_value'][c[1].value][c[3].value] = str_json
             parsed_data['url'][c[1].value] = []
             parsed_data['url'][c[1].value].append(c[5].value)
             parsed_data['post_data'][c[1].value] = {}
             parsed_data['post_data'][c[1].value][c[2].value] = c[6].value
             parsed_data['parsed_post_data'][c[1].value] = {}
-            s = c[6].value
-            try:
-                str_json = json_parse(s)
-            except Exception as e:
-                print(e)
-                str_json = ''
+            str_json = wrapper_for_json_parse(c[6].value)
             parsed_data['parsed_post_data'][c[1].value][c[2].value] = str_json                
-            
             parsed_data['response_code'][c[1].value] = {}
             parsed_data['response_code'][c[1].value][c[2].value] = c[7].value
             parsed_data['response'][c[1].value] = {}
             parsed_data['response'][c[1].value][c[2].value] = c[8].value                
             parsed_data['parsed_response'][c[1].value] = {}
-            s = c[8].value
-            try:
-                str_json = json_parse(s)
-            except Exception as e:
-                print(e)
-                str_json = ''
+            str_json = wrapper_for_json_parse(c[8].value)
             parsed_data['parsed_response'][c[1].value][c[2].value] = str_json                
                 
         elif last_point is not None:
@@ -900,19 +885,14 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
                 parsed_data['response_code'][last_point][c[2].value] = c[7].value
             if c[8].value is not None:
                 parsed_data['response'][last_point][c[2].value] = c[8].value
-                s = c[8].value
-                try:
-                    str_json = json_parse(s)
-                except Exception as e:
-                    print(e)
-                    str_json = ''
+                str_json = wrapper_for_json_parse(c[8].value)
                 parsed_data['parsed_response'][last_point][c[2].value] = str_json  
             
     return parsed_data
         
+parsed_data['headers_value']['token']
 
-
-parsed_data = read_data(filename, sheet_name='data')    
+parsed_data = read_data(filename='setting1.xlsx', sheet_name='data')    
 
 for p in parsed_data['headers_name']:
     print(parsed_data['headers_name'][p])
@@ -979,8 +959,11 @@ for points in parsed_data['parsed_response']:
 getters = filling_getters(settings, parsed_data, getters )             
 setters = filling_setters(settings, setters, getters)
 setters
+setters={}
+getters={}
 settings['getter']
 parsed_data['parsed_response']
+
                 
 def filling_getters(settings, parsed_data, getters ):             
     
@@ -1039,17 +1022,95 @@ settings['setter_inv']
 parsed_data['post_data']
 getters
 setters
+settings['setter_inv']
+parsed_data['headers_value']['settings'].keys()
+parsed_data['parsed_post_data'].keys()
+settings['setter_inv']['settings'].keys()
+
+
+for p in settings['setter_inv']:
+    for field in settings['setter_inv'][p]:
+        print(p, field)
+        print('headers')
+        try:
+            print(parsed_data['headers_value'][p], settings['setter_inv'][p])
+            # if parsed_data['headers_value'][p][field] == settings['setter_inv'][p][field]:
+            if parsed_data['headers_value'][p] == settings['setter_inv'][p]:
+                print(1)
+            print('post')
+        except Exception as e:
+            print(e)
+        try:
+            for v in parsed_data['parsed_post_data'][p]: 
+                print('verb', v)
+                print(parsed_data['parsed_post_data'][p][v], settings['setter_inv'][p])
+
+                try:
+                    for dat in parsed_data['parsed_post_data'][p][v]:
+                        print(parsed_data['parsed_post_data'][p][v][dat], settings['setter_inv'][p])
+                        if parsed_data['parsed_post_data'][p][v][dat] == settings['setter_inv'][p]:
+                            print(3)
+                except:
+                                    
+                    if parsed_data['parsed_post_data'][p][v] == settings['setter_inv'][p]:
+                        print(2)
+        except Exception as e:
+            print(e)
+            
+            
+            
+            
+            
+                 
 settings['getter']['token']   
 list(settings['setter_inv']['getRelPhone'].keys())
-field_for_subst = ['post_data']
-field ='post_data'
-for p in parsed_data[field]:
+field_for_subst = ['parsed_post_data', 'headers_value' ]
+field ='parsed_post_data'
+
+for p in parsed_data[field_for_subst[1]]:
     print(p)
-    for v in parsed_data[field][p]:
-        print(p)
+    for v in parsed_data[field_for_subst[1]][p]:
+        print(v)
 
 
+parsed_data['parsed_headers_value']
 'settings' in settings['setter'].keys()
+
+parent = ['']
+parent.append(1)
+import copy
+p0 = copy(parent)
+parent
+
+def parse_dict(s, list_, parent=[], n=0, dic=0):
+    print()
+    # print('s,list_', s,list_)
+    if s in list_:
+        print('||||parseDict', s, parent)
+        yield s, parent
+    if isType(s)<2:
+        # print(s)
+        # yield (s,list_, n,dic)
+        yield '', parent
+    if isType(s)==2:
+        for c in s:
+            yield from parse_dict(c, list_, parent, n+1, dic)
+        # print()
+    if isType(s)==3:
+        for c in s:
+            # yield (c,n+1,dic)
+            print('parseDict 0', c,'s[c]',s[c], 'par', parent)
+            
+            if c in list_:
+                print('||||parseDict', c, parent)
+                yield c, parent
+            if isType( s[c]) >=2:    
+                parent0= copy.deepcopy(parent)
+                parent0.append(c)
+                yield from parse_dict(s[c], list_, parent0, n, dic+1)
+        dic -=1
+    
+list(settings['setter_inv'].items())
 
 
 def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
@@ -1059,61 +1120,82 @@ def substitution_with_setters(settings, parsed_data, getters, setters, field_for
         print(1)
         for points in parsed_data[field]:
             print(2)
-            if points in settings['setter'].keys():
+            if points in settings['setter_inv'].keys():
                 print(3)
-                # for verbs in parsed_data[field][points]:
-                    # print(14)
-                if isType(parsed_data[field][points]) >=2:
-                    print(4)
-                    for r in parsed_data[field][points]:
-                        print(5)
-                        print(parsed_data[field][points])
-                        print(parsed_data[field][points][r])
-                        print(r)
-                        print(isType(parsed_data[field][points][r]))
-                        print(type(parsed_data[field][points][r]))
-                        # if isType(parsed_data[field][points]) >=2:
+                n=10
+                if field == 'parsed_post_data':
+                    print(parsed_data[field][points]['post'], list(settings['setter_inv'][points].keys()))
+                    g = parse_dict(parsed_data[field][points]['post'], list(settings['setter_inv'][points].keys()))
+                else:
+                    print(parsed_data[field][points], list(settings['setter_inv'][points].keys()))
+                    g = parse_dict(parsed_data[field][points], list(settings['setter_inv'][points].keys()))
+                try:
+                    print(list(settings['setter_inv'][points].keys()))
+                    while n>0:
+                        m, parent = next(g)
+                        if m !='':
+                            print("||||||||||||||||||||||||||")
+                            print('parent', m, parent)
+                            print()
+                            print()
+                            print(parsed_data[field][points])
+                            print(list(parent)[0])
+                            print(1, parsed_data[field][points][parent[0]])
+                            print("||||||||||||||||||||||||||")
+                    n-=1
+                except Exception as e:
+                    print(e)
+                # if isType(parsed_data[field][points]) >=2:
+                #     print(4)
+                #     if field == 'parsed_post_data':
+                #         for verb in parsed_data[field][points]:
+                #             # sinker(v[verb])    
+                                                 
+                    # else:
+                        # sinker(v)                         
+                        
+        
 
-                        if isType(parsed_data[field][points][r]) >=2 :
-                            print(r, type(parsed_data[field][points]), len(parsed_data[field][points]))
-                            print(6)
-                            for re in parsed_data[field][points][r]:
-                                print(17)
-                                if isType(parsed_data[field][points][r][re]) >=2:
-                                    print(18)
-                                    for res in parsed_data[field][points][r][re]:
-                                        
-                                        print('settings[setter]', settings['setter'].keys(), points)
-                                        if settings['setter'].get(points,0):
-                                            if res in list(settings['setter_inv'][points].keys()):
-                                                alias = settings['setter_inv'][points]
-                                                # getters[alias] = 
-                                                print('res=', res)
-                                                print(parsed_data[field][points][r][re][res])
-                                                print('alias', alias)
-                                                # parsed_data[field][points][r][re][res] = alias #settings['setter_inv'][points][res]
-                                                # setters[alias]
-                                else:
-                                    print(21)
+def sinker(v):
 
-                                    if settings['setter'].get(points,0):
-                                        if re in list(*settings['setter'][points].items()):
-                                            alias = list(settings['setter'][points].keys())[0]
-                                            # getters[alias] = parsed_data[field][points][r][re]
-                                            print('alias', alias)
-                        else:
-                            print(101)
-                            if settings['setter'].get(points,0):
-                                print(111)
-                                if r in list(settings['setter'][points].items()):
-                                    print(121)
-                                    alias = list(settings['setter'][points].keys())[0]
-                                    # setters[alias] = parsed_data[field][points][r]
-                                    print('alias', alias)
+    for r in v:
+        print(5)
+        print(isType(v[r]))
+        print(type(v[r]))
+        if isType(v[r]) >=2 :
+            # print(r, type(v), len(v))
+            print(6)
+            for re in v[r]:
+                print(17)
+                if isType(v[r][re]) >=2:
+                    print(18)
+                    for res in v[r][re]:
+                        # print('settings[setter]', settings['setter'].keys(), points)
+                        if settings['setter'].get(points,0):
+                            if res in list(settings['setter_inv'][points].keys()):
+                                alias = settings['setter_inv'][points]
+                                print('res=', res)
+                                print(v[r][re][res])
+                                print('alias', alias)
+                                # v[r][re][res] = alias #settings['setter_inv'][points][res]
+                else:
+                    print(21)
+                    if settings['setter'].get(points,0):
+                        if re in list(*settings['setter'][points].items()):
+                            alias = list(settings['setter'][points].keys())[0]
+                            # getters[alias] = v[r][re]
+                            print('alias', alias)
+        else:
+            print(101)
+            if settings['setter'].get(points,0):
+                print(111)
+                if r in list(settings['setter'][points].items()):
+                    print(121)
+                    alias = list(settings['setter'][points].keys())[0]
+                    # setters[alias] = v[r]
+                    print('alias', alias)
 
 
-    
-    
 
 
 
@@ -1289,6 +1371,8 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
             header_counter += 1
         counter = max(counter+1, verb_counter, header_counter) + 1
     workbook.close()
+
+
 write_2_excel_parsed_data(parsed_data, settings )
     
     
