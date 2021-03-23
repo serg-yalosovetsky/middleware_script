@@ -2,6 +2,7 @@ from json.decoder import JSONDecodeError
 from typing import Dict
 import aiohttp
 import xlsxwriter
+import json, yaml
 import requests, asyncio
 from openpyxl import load_workbook
 
@@ -181,9 +182,6 @@ def manageRequest(point, verb , token=None, headers={}, data={}, debug=0, log={}
     # r = _requests(url, verb, headers, data, debug)    
     return (r, verb, url, point, r.json())    
 
-*y, r = manageRequest('offer', 'get')
-y
-r
 
 
 def many_req_gen(verbs, points, token, data={}, debug=0 ):
@@ -469,24 +467,6 @@ def parse_str(s,n, dic=0):
             yield from parse_str(s[c], n, dic+1)
         dic -=1
     
-    
-example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':5}}]
-g = parse_str(resp, 1)
-print(next(g))
-
-
-point = 'settings'
-verb ='get'
-url = url_creator(point)
-token = fetchToken()
-header = header_creator(point, token)
-r = requests.request(method = verb, url= url, headers=header)
-resp = r.json()
-resp =_
-example = [{'a':[1,2],'b':{3}},{'w':{'q':4}}]
-print(str(example))
-print(repr(example))
-
 
 def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, param='', x0=0, y0=0, type_s=0): #i,d
     if param=='':
@@ -520,10 +500,6 @@ def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, param='', x0=0, y0=
     else:
         check = 0    
     return check
-
-res = '{"getToken": {"error": 0, "values": {"token": "6C08AD5F0D1A3A883545FED46A6F80BE","pukResponse":"","pukCnt":"","roleLic":"Contract Administrator","roleValue":"Администратор «Абонент»","roleDes":"Роль «Администратор «Абонент» предоставляет возможность управлять услугами и сервисами всех номеров на всех лицевых счетах контракта","roleOrder":"5","calcMethod":"PoP","billNumber":"295405598213","rtmAccessToken":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJtc191YWFfY3JlZGVudGlhbF90eXBlX3Bhc3N3b3JkX2p3dCIsInRtZl9tc19yZXNvdXJjZV9wcm9maWxlOlZBTElEQVRFLUlNRUkiLCJ0bWZfbXNfaW50ZXJhY3Rpb25fcHJvZmlsZTpSVE0tVEVDSE5JQ0FMIiwidG1mX21zX2ludGVyYWN0aW9uX3Byb2ZpbGU6UlRNIiwib3BlbmlkIiwidG1mX21zX2FjdGl2YXRpb25fc2VydmljZV90eXBlOkREUy1TWU5DLUFDVElWQVRJT04iLCJ0bWZfbXNfcmVzb3VyY2VfcHJvZmlsZTpBTlRJRlJBVUQtU0lNLUNIQU5HRSIsInRtZl9tc19xdWFsaWZpY2F0aW9uX3Byb2ZpbGU6UlRNOkNSTSIsInRtZl9tc19hY3RpdmF0aW9uX3NlcnZpY2VfdHlwZTpERFMtU1lOQy1ERUFDVElWQVRJT04iXSwiZXhwIjoxNjE1ODE0ODAxLCJhZGRpdGlvbmFsRGV0YWlscyI6eyJtc2lzZG4iOiIzODA5NTIyNDAwMTYifSwiYXV0aG9yaXRpZXMiOlsiUk9MRV9TWVNURU0iXSwianRpIjoiY2E5YTlkMGUtOWIwOC00YTJmLWFjMGYtMjE2ZDkzZDZmYTQ4IiwidGVuYW50IjoiWE0iLCJjbGllbnRfaWQiOiJzdmMtY3JtLW13In0.WfZlUix0QG1gV5L802wklpYbYsV-YeL2I8s5TvUyIaP5KPlgpzYrGJ_rv4WGBPNIFAlESo8awGfkcposMnBKjgqcNJcFh-DGFD6QAPOuvO6j7hn8sgo038JIqYBLvaQeOPCaV3_nJX92S29Y1Cv4D1cCuRjzwpHP5oq6jXk2AlSb-yioJqUzCvTh30k4TeggZl39XOeRqvhcRjPNufJSfS_RNM7B5hr-VvBfNao2GKPIQ4S7dg1-i7w0h_An1PFBPY_js_lfyh3atjudFFb7_cbx3Q5MMo7JT8nS17o6ebl4aca_jnAOfHlvyOiCzy9Ev4qOwJkYEYg7o285QMJzDQ","rtmRefreshToken":"","pin":true,"isShowedPin":false}},"identification": {"error": 0, "values": { "id":""}}}'
-g =parse_str(res,0)
-s,n,d = next(g)
 
 
 def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
@@ -650,16 +626,6 @@ def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', ve
     return (workbook, worksheet, i-x0, shift_right_max - y0)
 
 
-
-*y, r = manageRequest('token', 'get')
-y
-r
-header_creator('offer', 'get')
-
-
-filename = 'setting1.xlsx'
-
-
 def check_if_cell_is_not_empty(s):
     try:
         if s is not None and s != '':
@@ -669,7 +635,6 @@ def check_if_cell_is_not_empty(s):
     except Exception as e:
         print(e)
        
-
 
 def append_list_in_dict(dict_, list_, elem):
     print(dict_, list_, elem)
@@ -692,6 +657,7 @@ def add_record_in_dict(dict_, key, key2, elem):
       
 parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
 append_list_in_dict(parsed_settings['field of response'], c[1].value, c[2].value )
+filename = 'setting1.xlsx'
 
       
 settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
@@ -759,8 +725,7 @@ def parse_settings_in_read_settings(settings, c, mode):
             mode= 'mode_parse_for_setter'
             
     return settings, mode
-    
-     
+        
        
 def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), validate_function=None, **kwargs ):
     
@@ -867,10 +832,10 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
     try:
         cells = sheet[diapasone[0]: diapasone[1]]
     except Exception as e:
-        printlog('Неверный диапазон значений для парсинга')
+        print('Неверный диапазон значений для парсинга')
     c = [0 for i in range(len(cells) )]
-    parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'url' : {}, 
-                   'post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
+    parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'parsed_headers_value' : {}, 'url' : {}, 
+                   'post_data':{}, 'parsed_post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
 
     i = 0
     for *c, in cells:  
@@ -886,10 +851,27 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
             parsed_data['headers_name'][c[1].value].append(c[3].value)
             parsed_data['headers_value'][c[1].value] = {}
             parsed_data['headers_value'][c[1].value][c[3].value] = c[4].value
+            parsed_data['parsed_headers_value'][c[1].value] = {}
+            s = c[4].value
+            try:
+                str_json = json_parse(s)
+            except Exception as e:
+                print(e)
+                str_json = ''
+            parsed_data['parsed_headers_value'][c[1].value][c[3].value] = str_json
             parsed_data['url'][c[1].value] = []
             parsed_data['url'][c[1].value].append(c[5].value)
             parsed_data['post_data'][c[1].value] = {}
             parsed_data['post_data'][c[1].value][c[2].value] = c[6].value
+            parsed_data['parsed_post_data'][c[1].value] = {}
+            s = c[6].value
+            try:
+                str_json = json_parse(s)
+            except Exception as e:
+                print(e)
+                str_json = ''
+            parsed_data['parsed_post_data'][c[1].value][c[2].value] = str_json                
+            
             parsed_data['response_code'][c[1].value] = {}
             parsed_data['response_code'][c[1].value][c[2].value] = c[7].value
             parsed_data['response'][c[1].value] = {}
@@ -930,7 +912,20 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
         
 
 
-parsed_data = read_data(filename, sheet_name='data')        
+parsed_data = read_data(filename, sheet_name='data')    
+
+for p in parsed_data['headers_name']:
+    print(parsed_data['headers_name'][p])
+    
+
+
+for p in parsed_data['headers_value']:
+    print(parsed_data['headers_value'][p])
+
+
+print(parsed_data['parsed_headers_value'])
+
+parsed_data['headers_value']
 
 s='{"error": "method_not_allowed", "error_description": "Request method "GET" not supported"}'
 json.loads(s)
@@ -981,9 +976,11 @@ for points in parsed_data['parsed_response']:
             
 
 'token_mw' in dict(settings['getter']['token'].items())
-
-
-
+getters = filling_getters(settings, parsed_data, getters )             
+setters = filling_setters(settings, setters, getters)
+setters
+settings['getter']
+parsed_data['parsed_response']
                 
 def filling_getters(settings, parsed_data, getters ):             
     
@@ -1044,41 +1041,87 @@ getters
 setters
 settings['getter']['token']   
 list(settings['setter_inv']['getRelPhone'].keys())
-         
+field_for_subst = ['post_data']
+field ='post_data'
+for p in parsed_data[field]:
+    print(p)
+    for v in parsed_data[field][p]:
+        print(p)
+
+
+'settings' in settings['setter'].keys()
+
+
 def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
-    
+
+
     for field in field_for_subst:
+        print(1)
         for points in parsed_data[field]:
-            if points in settings['getter'].keys():
-                for verbs in parsed_data[field][points]:
-                    if isType(parsed_data[field][points][verbs]) >=2:
-                        for r in parsed_data[field][points][verbs]:
-                            if isType(parsed_data[field][points][verbs][r]) >=2:
-                                for re in parsed_data[field][points][verbs][r]:
-                                    if isType(parsed_data[field][points][verbs][r][re]) >=2:
-                                        for res in parsed_data[field][points][verbs][r][re]:
-                                            if settings['getter'].get(points,0):
-                                                if res in list(settings['getter_inv'][points].keys()):
-                                                    alias = settings['setter_inv'][points]
-                                                    # getters[alias] = 
-                                                    print('res=', res)
-                                                    parsed_data[field][points][verbs][r][re][res] = alias #settings['setter_inv'][points][res]
-                                                    # setters[alias]
-                                                    
-                                    else:
-                                        if settings['getter'].get(points,0):
-                                            if re in list(*settings['getter'][points].items()):
-                                                alias = list(settings['getter'][points].keys())[0]
-                                                getters[alias] = parsed_data[field][points][verbs][r][re]
+            print(2)
+            if points in settings['setter'].keys():
+                print(3)
+                # for verbs in parsed_data[field][points]:
+                    # print(14)
+                if isType(parsed_data[field][points]) >=2:
+                    print(4)
+                    for r in parsed_data[field][points]:
+                        print(5)
+                        print(parsed_data[field][points])
+                        print(parsed_data[field][points][r])
+                        print(r)
+                        print(isType(parsed_data[field][points][r]))
+                        print(type(parsed_data[field][points][r]))
+                        # if isType(parsed_data[field][points]) >=2:
+
+                        if isType(parsed_data[field][points][r]) >=2 :
+                            print(r, type(parsed_data[field][points]), len(parsed_data[field][points]))
+                            print(6)
+                            for re in parsed_data[field][points][r]:
+                                print(17)
+                                if isType(parsed_data[field][points][r][re]) >=2:
+                                    print(18)
+                                    for res in parsed_data[field][points][r][re]:
+                                        
+                                        print('settings[setter]', settings['setter'].keys(), points)
+                                        if settings['setter'].get(points,0):
+                                            if res in list(settings['setter_inv'][points].keys()):
+                                                alias = settings['setter_inv'][points]
+                                                # getters[alias] = 
+                                                print('res=', res)
+                                                print(parsed_data[field][points][r][re][res])
+                                                print('alias', alias)
+                                                # parsed_data[field][points][r][re][res] = alias #settings['setter_inv'][points][res]
+                                                # setters[alias]
+                                else:
+                                    print(21)
+
+                                    if settings['setter'].get(points,0):
+                                        if re in list(*settings['setter'][points].items()):
+                                            alias = list(settings['setter'][points].keys())[0]
+                                            # getters[alias] = parsed_data[field][points][r][re]
+                                            print('alias', alias)
+                        else:
+                            print(101)
+                            if settings['setter'].get(points,0):
+                                print(111)
+                                if r in list(settings['setter'][points].items()):
+                                    print(121)
+                                    alias = list(settings['setter'][points].keys())[0]
+                                    # setters[alias] = parsed_data[field][points][r]
+                                    print('alias', alias)
+
+
     
-                            else:
-                                if settings['getter'].get(points,0):
-                                    if r in list(*settings['getter'][points].items()):
-                                        alias = list(settings['getter'][points].keys())[0]
-                                        getters[alias] = parsed_data[field][points][verbs][r]
     
-    
-    
+
+
+
+
+
+
+
+
 if settings['getter'].get(point,0):
                     
                     
@@ -1290,9 +1333,10 @@ log
 
 import os
 cwd = os.getcwd()
-os.chdir("/path/to/your/folder")
+cwd0 = os.getcwd()
+os.chdir(r"C:\Users\syalosovetskyi\Downloads\python\middleware_script")
 os.listdir('.')
-cwd
+cwd0
 
 def prompt(s):
     print(s)
