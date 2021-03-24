@@ -466,47 +466,96 @@ def parse_str(s,n, dic=0):
         dic -=1
     
 
-def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, param='', x0=0, y0=0, type_s=0): #i,d
+
+def check_if_filed_in_excluding(parent, field, point, settings, reverse=0):
+
+    for p in settings['field of response']:
+        if point == p:
+            for m in settings['field of response']:
+                # if m == field or m in parent:
+                if m == field :
+                    print(1)
+                    return 1
+                elif m in parent:
+                    print(2)
+                    return 1
+                else:
+                    print(0)
+                    return 0
+
+settings
+
+def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, parent=[], point='', checking='', settings='', param='', x0=0, y0=0, type_s=0): #i,d
     if param=='':
         sheet.write(x,y, str(s))
-        print(x,y,shift)
         if s_new!='':
-            print('worksheet_write_twice_shift s_new no param')
-            print('||||||||||||||||||||||||||||||||||')
-            print(s_new)
-            print('||||||||||||||||||||||||||||||||||')
             sheet.write(x,y+shift, str(s_new))
     else:
         sheet.write(x,y, str(s), param)
-        print(x,y,shift)
         if s_new!='':
-            print('worksheet_write_twice_shift s_new param')
-            print('||||||||||||||||||||||||||||||||||')
-            print(s_new)
-            print('||||||||||||||||||||||||||||||||||')
             sheet.write(x,y+shift, str(s_new), param)
-    if x0!=0 or y0!=0 and s_new!='':
-        if s==s_new: check = 1
-        else: check = 0
-        
-        if param=='':
-            if type_s: sheet.write(x0,y0+1, type(check) )
-            sheet.write(x0,y0, str(bool(check)) )
-        else:
-            if type_s: sheet.write(x0,y0+1, type(check) )
-            sheet.write(x0,y0, str(bool(check)), param)
+
+    if x0!=0 or y0!=0:
+            
+            if not check_if_filed_in_excluding(parent, s, point, settings, reverse=0):
+                if s==s_new: check = 1
+                else: check = 0
+            else:
+                check =1
+            if param=='':
+                if type_s: sheet.write(x0,y0+1, type(check) )
+                sheet.write(x0,y0, str(bool(check)) )
+            else:
+                if type_s: sheet.write(x0,y0+1, type(check) )
+                sheet.write(x0,y0, str(bool(check)), param)
     else:
         check = 0    
     return check
 
 
-def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
+def border_drawer(workbook):
+    '''return border, border_no_top, border_no_topright, border_no_left, border_no_right, border_no_bottom, border_no_bottomleft
+    '''
+    border = workbook.add_format()
+    border.set_border(style=1)
+    border_no_top = workbook.add_format()
+    border_no_top.set_bottom()
+    border_no_top.set_left()
+    border_no_top.set_right()
+    border_no_topright = workbook.add_format()
+    border_no_topright.set_border(style =3)
+    border_no_topright.set_bottom()
+    border_no_topright.set_left()
+    border_no_left = workbook.add_format()
+    border_no_left.set_border(style =3)
+    border_no_left.set_bottom()
+    border_no_left.set_top()
+    border_no_left.set_right()
+    border_no_right = workbook.add_format()
+    border_no_right.set_border(style =3)
+    border_no_right.set_bottom()
+    border_no_right.set_top()
+    border_no_right.set_left()
+    border_no_bottom = workbook.add_format()
+    border_no_bottom.set_top()
+    border_no_bottom.set_left()
+    border_no_bottom.set_right()
+    border_no_bottomleft = workbook.add_format()
+    border_no_bottomleft.set_border(style =3)
+    border_no_bottomleft.set_top()
+    border_no_bottomleft.set_right()
+    bd = {'border':border, 'border_no_top':border_no_top, 'border_no_topright':border_no_topright, 
+        'border_no_left':border_no_left, 'border_no_right':border_no_right, 'border_no_bottom':border_no_bottom,
+         'border_no_bottomleft':border_no_bottomleft}
+    return bd
+
+
+def _write_response_to_excel(resp_old, resp_new='', point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
-    gen = parse_str(resp,0)
+    gen_old = parse_str(resp_old,0)
     if resp_new !='':
-        print('++++++++++++++++++++++')
-        gen_example = parse_str(resp_new,0)
+        gen_new = parse_str(resp_new,0)
         
     if workbook=='':
         workbook = xlsxwriter.Workbook(filename)
@@ -514,101 +563,79 @@ def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', ve
     else:
         need_close =0
         
-        
+    #смещения нового респонса относитлеьно старого   
+    shift = 4  #max(shift_right, 1) 
     if current_worksheet=='':
         worksheet = workbook.add_worksheet(new_worksheet)
     else:
         worksheet = current_worksheet
     if border_draw ==1:
-        border = workbook.add_format()
-        border.set_border(style=1)
-
-        border_no_top = workbook.add_format()
-        border_no_top.set_bottom()
-        border_no_top.set_left()
-        border_no_top.set_right()
-        border_no_topright = workbook.add_format()
-        border_no_topright.set_border(style =3)
-        border_no_topright.set_bottom()
-        border_no_topright.set_left()
-        border_no_left = workbook.add_format()
-        border_no_left.set_border(style =3)
-        border_no_left.set_bottom()
-        border_no_left.set_top()
-        border_no_left.set_right()
-        border_no_right = workbook.add_format()
-        border_no_right.set_border(style =3)
-        border_no_right.set_bottom()
-        border_no_right.set_top()
-        border_no_right.set_left()
-        border_no_bottom = workbook.add_format()
-        border_no_bottom.set_top()
-        border_no_bottom.set_left()
-        border_no_bottom.set_right()
-        border_no_bottomleft = workbook.add_format()
-        border_no_bottomleft.set_border(style =3)
-        border_no_bottomleft.set_top()
-        border_no_bottomleft.set_right()
-
+        bd = border_drawer(workbook)
+            
     try:
         i=0
         shift_right_prev=0
         shift_right_max = 0
         str_resp_old=''
-        q=0
+        counter=0
         border_prev = ''
         while True:
-            str_resp,shift_down,shift_right =next(gen)
+            str_resp,shift_down,shift_right =next(gen_old)
             if resp_new!='':
-                str_resp_old,shift_down_old,shift_right_old =next(gen_example)  #str_resp_prev,n2,d2 =next(gen_example) 
-                # print('*********************')
-                # print(s2)
-                # print('*********************')
-                
-            else: str_resp_old=''
+                str_resp_old,shift_down_old,shift_right_old =next(gen_old)  #str_resp_prev,n2,d2 =next(gen_example) 
+            else: 
+                str_resp_old=''
             shift_right+=y0
             if i==0:
                 shift_right_prev=shift_right
                 n_prev=shift_down
                      
-            if q==0:
+            if counter==0:
                 i =x0
                 shift_right_prev=shift_right
                 i_prev=i
             if shift_right>shift_right_prev:
                 i-=1
-            
-            if shift_down == n_prev and q>0: #если уровень списка одинаков для текущего и предыдущего
+            checking = ''
+            if settings['how to check response'] == 'simple':
+                checking = 'simple'
+            if settings['how to check response'] == 'complicated':
+                if settings['exclude or include fields'] == 'exclude':
+                    checking = 'exclude'
+                if settings['exclude or include fields'] == 'include':
+                    checking = 'include'
+            if shift_down == n_prev and counter>0: #если уровень списка одинаков для текущего и предыдущего
                 if shift_right==shift_right_prev: #если уровень словаря одинаков для текущего и предыдущего
                     if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_bottomleft)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old), bd['border_no_bottomleft'])
                             
                     else: #иначе устанавливаем только  "без нижней"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_bottom)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),bd['border_no_bottom'])
 
                     # sett.write(i, d, str(s),border_no_top)
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, param = border_no_top, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(sheet, x,y, s, shift_on_y, s_new, parent, point, checking, settings='', param='', x0=0, y0=0, type_s=0)
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, checking, point, settings=settings, param = bd['border_no_top'], x0=i, y0=y0-1) #i,d
                     border_prev = 'no top' #устанавливаем "без верхней " для текущей
-                    q+=1
+                    counter+=1
                 elif shift_right>shift_right_prev:
                     if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_topright)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),bd['border_no_topright'])
                     else: #иначе устанавливаем только "без правой"
                         worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_right)
                     # sett.write(i, d, str(s),border_no_left)
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, param = border_no_left, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, param = border_no_left, x0=i, y0=y0-1) #i,d
                     border_prev = 'no left'
-                    q+=1
+                    counter+=1
                 else:
                     # sett.write(i, d, str(s))
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, x0=i, y0=y0-1) #i,d
                     border_prev = ''
-                    q+=1
+                    counter+=1
             else:
                 # sett.write(i, d, str(s))
-                worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, x0=i, y0=y0-1) #i,d
+                worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, x0=i, y0=y0-1) #i,d
                 border_prev = ''
-                q+=1
+                counter+=1
             
             shift_right_prev = shift_right
             shift_right_max = max(shift_right_max, shift_right)
@@ -825,6 +852,17 @@ def wrapper_for_json_parse(value):
         str_json = ''
     return str_json
         
+        
+def parsing_response_and_post_data(parsed_data, data, point, verb, safe=0, type_='parsed_response'):
+    str_json = wrapper_for_json_parse(data)
+    if safe:
+        if str_json == '':
+            return parsed_data
+    parsed_data[type_][point] = {}
+    parsed_data[type_][point][verb] = str_json  
+    return parsed_data
+        
+        
 def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
     wb = load_workbook(filename = filename)
@@ -986,9 +1024,9 @@ def reading_response_from_file(filename, parsed_data, point='', verb='' ):
                     parsed_data['response'][points[0]][points[1]] = lin[i:]
                 else:
                     parsed_data['response'][point][verb] = lin[i:]
+    return parsed_data
                     
-                    
-                
+    
 def filling_getters(settings, parsed_data, getters ):             
     
     for points in parsed_data['parsed_response']:
@@ -1279,18 +1317,10 @@ s3 = "{'access_token': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJvcGV
 
 
 
+settings
 
 
-def serching_and_substitution_variables(s, point, settings):
-    if isType(settings['searching'])==3:
-        for p in settings['searching']:
-            if point == p:
-                for value in settings['searching'][p]:
-                    if value == s:
-                        settings['searching'][p][s]
-    
-    if isType(settings['substitution'])==3:
-        if s == ''
+  
 
 
 
@@ -1363,7 +1393,9 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                 print()
                 print()
             
-            workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
+
+            workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
+            # workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
             # workbook,worksheet,resp_counter, y =  write_to_excel2(resp, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+8)
             # workbook,worksheet,resp_counter2, y2 =  write_to_excel2(parsed_data['response'][point][verb],  current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+6+8)
             print('resp',type(resp), len(resp))
@@ -1428,7 +1460,7 @@ cwd = os.getcwd()
 cwd0 = os.getcwd()
 os.chdir(r"C:\Users\syalosovetskyi\Downloads\python\middleware_script")
 os.listdir('.')
-cwd0
+cwd
 
 def prompt(s):
     print(s)
