@@ -968,7 +968,26 @@ setters={}
 getters={}
 settings['getter']
 parsed_data['parsed_response']
+filename = 'response.txt'
 
+parsed_data['response']['getToken']['post']
+
+
+def reading_response_from_file(filename, parsed_data, point='', verb='' ):
+    
+    with open(filename, encoding='utf-8' ) as f:
+        for line in f.readlines():
+            for lin in line.split('/n'):
+                points = []
+                i = line.find('{')
+                for l in lin[:i].split():
+                    points.append(l)
+                if point!='' and verb !='':
+                    parsed_data['response'][points[0]][points[1]] = lin[i:]
+                else:
+                    parsed_data['response'][point][verb] = lin[i:]
+                    
+                    
                 
 def filling_getters(settings, parsed_data, getters ):             
     
