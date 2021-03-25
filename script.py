@@ -1037,12 +1037,11 @@ def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, parent=[], point=''
                 else: check = 0
             else:
                 check =1
-            if param=='':
-                if type_s: sheet.write(x0,y0+1, type(check) )
-                sheet.write(x0,y0, str(bool(check)) )
-            else:
-                if type_s: sheet.write(x0,y0+1, type(check) )
-                sheet.write(x0,y0, str(bool(check)), param)
+            
+
+            sheet.write(x,y0, str(bool(check)) )
+            if type_s: sheet.write(x,y0+1, type(s) )
+
     else:
         check = 0    
     return check
@@ -1182,7 +1181,46 @@ worksheet = workbook.add_worksheet(new_worksheet)
 need_close =1
 
 
-def _write_response_to_excel(resp_old, resp_new='', point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1, shift_on_y=3,x0=0,y0=0):
+
+def deco_border(accu):
+    def inner_deco(func):
+        def wrapper_for_worsheet_write(*args, **kwargs):
+            value = kwargs['val'] 
+            if accum != []:
+                print(accum, value)
+                func(*args, **kwargs)
+            else:
+                print('to early')
+            accum.append(value)
+        return wrapper_for_worsheet_write
+    return inner_deco
+lis= []
+
+
+def wrapper(func, list_, *args, **kwargs):
+    if list != []:
+        print(list)
+        func( *args, **kwargs)
+    else:
+        print('oops')
+    x = kwargs['val']
+    list_.append(x)
+    return list_
+
+
+def a(val=2):
+    print(val)
+    return (int(val))
+
+lis = wrapper(a,lis, val=4)
+lis
+
+q = a(50)
+
+
+
+
+def _write_response_to_excel(resp_old, resp_new, point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1, shift_on_y=3,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
 
@@ -1244,6 +1282,8 @@ def _write_response_to_excel(resp_old, resp_new='', point='', filename='test.xls
             print(f'shift_down_max {shift_down_max}, i {i}, shift_right {shift_right}, shift_right_prev {shift_right_prev} ')
             print(f'3str_resp {str_resp}, str_resp_old {str_resp_old}, |x {shift_down+i}, |y {shift_right}, shift_on_y+shift_right {shift_on_y+shift_right}')
             worksheet_write_twice_shift(worksheet, shift_down_max+i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point,checking=checking, settings=settings, x0=i, y0=y0-1) #i,d
+            worksheet.write(shift_down_max+i, shift_right,str_resp) 
+            worksheet.write(1,2, bd['border']) 
             counter+=1
             
             shift_right_prev = shift_right
