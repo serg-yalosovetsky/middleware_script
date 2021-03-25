@@ -2,6 +2,7 @@ from json.decoder import JSONDecodeError
 from typing import Dict
 import aiohttp
 import xlsxwriter
+import json, yaml
 import requests, asyncio
 from openpyxl import load_workbook
 
@@ -181,10 +182,6 @@ def manageRequest(point, verb , token=None, headers={}, data={}, debug=0, log={}
     # r = _requests(url, verb, headers, data, debug)    
     return (r, verb, url, point, r.json())    
 
-*y, r = manageRequest('offer', 'get')
-y
-r
-
 
 def many_req_gen(verbs, points, token, data={}, debug=0 ):
     
@@ -231,7 +228,6 @@ def gen_u(point, quirks, debug=0):
     else:
         while True:
             yield url_creator(point, {}, debug)
- 
  
  
 def gen_h(point, token, quirks, debug=0):
@@ -469,70 +465,97 @@ def parse_str(s,n, dic=0):
             yield from parse_str(s[c], n, dic+1)
         dic -=1
     
-    
-example = [{'a':[1,2],'b':3},{'w':[6,{'q':4}],'e':{'r':5}}]
-g = parse_str(resp, 1)
-print(next(g))
 
 
-point = 'settings'
-verb ='get'
-url = url_creator(point)
-token = fetchToken()
-header = header_creator(point, token)
-r = requests.request(method = verb, url= url, headers=header)
-resp = r.json()
-resp =_
-example = [{'a':[1,2],'b':{3}},{'w':{'q':4}}]
-print(str(example))
-print(repr(example))
+def check_if_filed_in_excluding(parent, field, point, settings, reverse=0):
 
+    for p in settings['field of response']:
+        if point == p:
+            for m in settings['field of response']:
+                # if m == field or m in parent:
+                if m == field :
+                    print(1)
+                    return 1
+                elif m in parent:
+                    print(2)
+                    return 1
+                else:
+                    print(0)
+                    return 0
 
-def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, param='', x0=0, y0=0, type_s=0): #i,d
+settings
+
+def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, parent=[], point='', checking='', settings='', param='', x0=0, y0=0, type_s=0): #i,d
     if param=='':
         sheet.write(x,y, str(s))
-        print(x,y,shift)
         if s_new!='':
-            print('worksheet_write_twice_shift s_new no param')
-            print('||||||||||||||||||||||||||||||||||')
-            print(s_new)
-            print('||||||||||||||||||||||||||||||||||')
             sheet.write(x,y+shift, str(s_new))
     else:
         sheet.write(x,y, str(s), param)
-        print(x,y,shift)
         if s_new!='':
-            print('worksheet_write_twice_shift s_new param')
-            print('||||||||||||||||||||||||||||||||||')
-            print(s_new)
-            print('||||||||||||||||||||||||||||||||||')
             sheet.write(x,y+shift, str(s_new), param)
-    if x0!=0 or y0!=0 and s_new!='':
-        if s==s_new: check = 1
-        else: check = 0
-        
-        if param=='':
-            if type_s: sheet.write(x0,y0+1, type(check) )
-            sheet.write(x0,y0, str(bool(check)) )
-        else:
-            if type_s: sheet.write(x0,y0+1, type(check) )
-            sheet.write(x0,y0, str(bool(check)), param)
+
+    if x0!=0 or y0!=0:
+            
+            if not check_if_filed_in_excluding(parent, s, point, settings, reverse=0):
+                if s==s_new: check = 1
+                else: check = 0
+            else:
+                check =1
+            if param=='':
+                if type_s: sheet.write(x0,y0+1, type(check) )
+                sheet.write(x0,y0, str(bool(check)) )
+            else:
+                if type_s: sheet.write(x0,y0+1, type(check) )
+                sheet.write(x0,y0, str(bool(check)), param)
     else:
         check = 0    
     return check
 
-res = '{"getToken": {"error": 0, "values": {"token": "6C08AD5F0D1A3A883545FED46A6F80BE","pukResponse":"","pukCnt":"","roleLic":"Contract Administrator","roleValue":"Администратор «Абонент»","roleDes":"Роль «Администратор «Абонент» предоставляет возможность управлять услугами и сервисами всех номеров на всех лицевых счетах контракта","roleOrder":"5","calcMethod":"PoP","billNumber":"295405598213","rtmAccessToken":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJtc191YWFfY3JlZGVudGlhbF90eXBlX3Bhc3N3b3JkX2p3dCIsInRtZl9tc19yZXNvdXJjZV9wcm9maWxlOlZBTElEQVRFLUlNRUkiLCJ0bWZfbXNfaW50ZXJhY3Rpb25fcHJvZmlsZTpSVE0tVEVDSE5JQ0FMIiwidG1mX21zX2ludGVyYWN0aW9uX3Byb2ZpbGU6UlRNIiwib3BlbmlkIiwidG1mX21zX2FjdGl2YXRpb25fc2VydmljZV90eXBlOkREUy1TWU5DLUFDVElWQVRJT04iLCJ0bWZfbXNfcmVzb3VyY2VfcHJvZmlsZTpBTlRJRlJBVUQtU0lNLUNIQU5HRSIsInRtZl9tc19xdWFsaWZpY2F0aW9uX3Byb2ZpbGU6UlRNOkNSTSIsInRtZl9tc19hY3RpdmF0aW9uX3NlcnZpY2VfdHlwZTpERFMtU1lOQy1ERUFDVElWQVRJT04iXSwiZXhwIjoxNjE1ODE0ODAxLCJhZGRpdGlvbmFsRGV0YWlscyI6eyJtc2lzZG4iOiIzODA5NTIyNDAwMTYifSwiYXV0aG9yaXRpZXMiOlsiUk9MRV9TWVNURU0iXSwianRpIjoiY2E5YTlkMGUtOWIwOC00YTJmLWFjMGYtMjE2ZDkzZDZmYTQ4IiwidGVuYW50IjoiWE0iLCJjbGllbnRfaWQiOiJzdmMtY3JtLW13In0.WfZlUix0QG1gV5L802wklpYbYsV-YeL2I8s5TvUyIaP5KPlgpzYrGJ_rv4WGBPNIFAlESo8awGfkcposMnBKjgqcNJcFh-DGFD6QAPOuvO6j7hn8sgo038JIqYBLvaQeOPCaV3_nJX92S29Y1Cv4D1cCuRjzwpHP5oq6jXk2AlSb-yioJqUzCvTh30k4TeggZl39XOeRqvhcRjPNufJSfS_RNM7B5hr-VvBfNao2GKPIQ4S7dg1-i7w0h_An1PFBPY_js_lfyh3atjudFFb7_cbx3Q5MMo7JT8nS17o6ebl4aca_jnAOfHlvyOiCzy9Ev4qOwJkYEYg7o285QMJzDQ","rtmRefreshToken":"","pin":true,"isShowedPin":false}},"identification": {"error": 0, "values": { "id":""}}}'
-g =parse_str(res,0)
-s,n,d = next(g)
+
+def border_drawer(workbook):
+    '''return border, border_no_top, border_no_topright, border_no_left, border_no_right, border_no_bottom, border_no_bottomleft
+    '''
+    border = workbook.add_format()
+    border.set_border(style=1)
+    border_no_top = workbook.add_format()
+    border_no_top.set_bottom()
+    border_no_top.set_left()
+    border_no_top.set_right()
+    border_no_topright = workbook.add_format()
+    border_no_topright.set_border(style =3)
+    border_no_topright.set_bottom()
+    border_no_topright.set_left()
+    border_no_left = workbook.add_format()
+    border_no_left.set_border(style =3)
+    border_no_left.set_bottom()
+    border_no_left.set_top()
+    border_no_left.set_right()
+    border_no_right = workbook.add_format()
+    border_no_right.set_border(style =3)
+    border_no_right.set_bottom()
+    border_no_right.set_top()
+    border_no_right.set_left()
+    border_no_bottom = workbook.add_format()
+    border_no_bottom.set_top()
+    border_no_bottom.set_left()
+    border_no_bottom.set_right()
+    border_no_bottomleft = workbook.add_format()
+    border_no_bottomleft.set_border(style =3)
+    border_no_bottomleft.set_top()
+    border_no_bottomleft.set_right()
+    bd = {'border':border, 'border_no_top':border_no_top, 'border_no_topright':border_no_topright, 
+        'border_no_left':border_no_left, 'border_no_right':border_no_right, 'border_no_bottom':border_no_bottom,
+         'border_no_bottomleft':border_no_bottomleft}
+    return bd
 
 
-def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
+def _write_response_to_excel(resp_old, resp_new='', point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
-    gen = parse_str(resp,0)
+    gen_old = parse_str(resp_old,0)
     if resp_new !='':
-        print('++++++++++++++++++++++')
-        gen_example = parse_str(resp_new,0)
+        gen_new = parse_str(resp_new,0)
         
     if workbook=='':
         workbook = xlsxwriter.Workbook(filename)
@@ -540,101 +563,79 @@ def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', ve
     else:
         need_close =0
         
-        
+    #смещения нового респонса относитлеьно старого   
+    shift = 4  #max(shift_right, 1) 
     if current_worksheet=='':
         worksheet = workbook.add_worksheet(new_worksheet)
     else:
         worksheet = current_worksheet
     if border_draw ==1:
-        border = workbook.add_format()
-        border.set_border(style=1)
-
-        border_no_top = workbook.add_format()
-        border_no_top.set_bottom()
-        border_no_top.set_left()
-        border_no_top.set_right()
-        border_no_topright = workbook.add_format()
-        border_no_topright.set_border(style =3)
-        border_no_topright.set_bottom()
-        border_no_topright.set_left()
-        border_no_left = workbook.add_format()
-        border_no_left.set_border(style =3)
-        border_no_left.set_bottom()
-        border_no_left.set_top()
-        border_no_left.set_right()
-        border_no_right = workbook.add_format()
-        border_no_right.set_border(style =3)
-        border_no_right.set_bottom()
-        border_no_right.set_top()
-        border_no_right.set_left()
-        border_no_bottom = workbook.add_format()
-        border_no_bottom.set_top()
-        border_no_bottom.set_left()
-        border_no_bottom.set_right()
-        border_no_bottomleft = workbook.add_format()
-        border_no_bottomleft.set_border(style =3)
-        border_no_bottomleft.set_top()
-        border_no_bottomleft.set_right()
-
+        bd = border_drawer(workbook)
+            
     try:
         i=0
         shift_right_prev=0
         shift_right_max = 0
         str_resp_old=''
-        q=0
+        counter=0
         border_prev = ''
         while True:
-            str_resp,shift_down,shift_right =next(gen)
+            str_resp,shift_down,shift_right =next(gen_old)
             if resp_new!='':
-                str_resp_old,shift_down_old,shift_right_old =next(gen_example)  #str_resp_prev,n2,d2 =next(gen_example) 
-                # print('*********************')
-                # print(s2)
-                # print('*********************')
-                
-            else: str_resp_old=''
+                str_resp_old,shift_down_old,shift_right_old =next(gen_old)  #str_resp_prev,n2,d2 =next(gen_example) 
+            else: 
+                str_resp_old=''
             shift_right+=y0
             if i==0:
                 shift_right_prev=shift_right
                 n_prev=shift_down
                      
-            if q==0:
+            if counter==0:
                 i =x0
                 shift_right_prev=shift_right
                 i_prev=i
             if shift_right>shift_right_prev:
                 i-=1
-            
-            if shift_down == n_prev and q>0: #если уровень списка одинаков для текущего и предыдущего
+            checking = ''
+            if settings['how to check response'] == 'simple':
+                checking = 'simple'
+            if settings['how to check response'] == 'complicated':
+                if settings['exclude or include fields'] == 'exclude':
+                    checking = 'exclude'
+                if settings['exclude or include fields'] == 'include':
+                    checking = 'include'
+            if shift_down == n_prev and counter>0: #если уровень списка одинаков для текущего и предыдущего
                 if shift_right==shift_right_prev: #если уровень словаря одинаков для текущего и предыдущего
                     if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_bottomleft)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old), bd['border_no_bottomleft'])
                             
                     else: #иначе устанавливаем только  "без нижней"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_bottom)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),bd['border_no_bottom'])
 
                     # sett.write(i, d, str(s),border_no_top)
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, param = border_no_top, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(sheet, x,y, s, shift_on_y, s_new, parent, point, checking, settings='', param='', x0=0, y0=0, type_s=0)
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, checking, point, settings=settings, param = bd['border_no_top'], x0=i, y0=y0-1) #i,d
                     border_prev = 'no top' #устанавливаем "без верхней " для текущей
-                    q+=1
+                    counter+=1
                 elif shift_right>shift_right_prev:
                     if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_topright)
+                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),bd['border_no_topright'])
                     else: #иначе устанавливаем только "без правой"
                         worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_right)
                     # sett.write(i, d, str(s),border_no_left)
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, param = border_no_left, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, param = border_no_left, x0=i, y0=y0-1) #i,d
                     border_prev = 'no left'
-                    q+=1
+                    counter+=1
                 else:
                     # sett.write(i, d, str(s))
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, x0=i, y0=y0-1) #i,d
+                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, x0=i, y0=y0-1) #i,d
                     border_prev = ''
-                    q+=1
+                    counter+=1
             else:
                 # sett.write(i, d, str(s))
-                worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift, str_resp_old, x0=i, y0=y0-1) #i,d
+                worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, x0=i, y0=y0-1) #i,d
                 border_prev = ''
-                q+=1
+                counter+=1
             
             shift_right_prev = shift_right
             shift_right_max = max(shift_right_max, shift_right)
@@ -650,16 +651,6 @@ def _write_response_to_excel(resp, resp_new='',shift=4, filename='test.xlsx', ve
     return (workbook, worksheet, i-x0, shift_right_max - y0)
 
 
-
-*y, r = manageRequest('token', 'get')
-y
-r
-header_creator('offer', 'get')
-
-
-filename = 'setting1.xlsx'
-
-
 def check_if_cell_is_not_empty(s):
     try:
         if s is not None and s != '':
@@ -669,7 +660,6 @@ def check_if_cell_is_not_empty(s):
     except Exception as e:
         print(e)
        
-
 
 def append_list_in_dict(dict_, list_, elem):
     print(dict_, list_, elem)
@@ -692,6 +682,7 @@ def add_record_in_dict(dict_, key, key2, elem):
       
 parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
 append_list_in_dict(parsed_settings['field of response'], c[1].value, c[2].value )
+filename = 'setting1.xlsx'
 
       
 settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
@@ -759,8 +750,7 @@ def parse_settings_in_read_settings(settings, c, mode):
             mode= 'mode_parse_for_setter'
             
     return settings, mode
-    
-     
+        
        
 def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), validate_function=None, **kwargs ):
     
@@ -837,7 +827,7 @@ token
  
  
 def json_parse(s):
-    if s=='':
+    if s=='' or s is None:
         return s
     try:
         str_json = json.loads( s.replace("'",'"'))
@@ -845,19 +835,35 @@ def json_parse(s):
         try:
             q0 = s.find('"')
             q1 = s.rfind('"')
-            print(q0,q1)
-            print(s)
             s = s[:q0]+ s[q0:q1].replace("'",  '') +s[q1:]
             s = s.replace("'", '"')
-            print(s)
             str_json = yaml.load(s)
         except Exception as e:
             print(e)
             str_json = 'json decode error, maybe unexpectend of string'
     return str_json
  
+def wrapper_for_json_parse(value):
+    s = value
+    try:
+        str_json = json_parse(s)
+    except Exception as e:
+        print(e)
+        str_json = ''
+    return str_json
         
-def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
+        
+def parsing_response_and_post_data(parsed_data, data, point, verb, safe=0, type_='parsed_response'):
+    str_json = wrapper_for_json_parse(data)
+    if safe:
+        if str_json == '':
+            return parsed_data
+    parsed_data[type_][point] = {}
+    parsed_data[type_][point][verb] = str_json  
+    return parsed_data
+        
+        
+def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I40'), validate_function=None, **kwargs ):
     
     wb = load_workbook(filename = filename)
     if sheet_name == '__active':
@@ -865,12 +871,16 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
     else: 
         sheet = wb[sheet_name]
     try:
-        cells = sheet[diapasone[0]: diapasone[1]]
+        if settings == '':
+            cells = sheet[diapasone[0]: diapasone[1]]
+        else:
+            cells = sheet[settings['diapasone'][0]: settings['diapasone'][1]]
+            
     except Exception as e:
-        printlog('Неверный диапазон значений для парсинга')
+        print('Неверный диапазон значений для парсинга')
     c = [0 for i in range(len(cells) )]
     parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'url' : {}, 
-                   'post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
+                   'post_data':{}, 'parsed_post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
 
     i = 0
     for *c, in cells:  
@@ -890,17 +900,15 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
             parsed_data['url'][c[1].value].append(c[5].value)
             parsed_data['post_data'][c[1].value] = {}
             parsed_data['post_data'][c[1].value][c[2].value] = c[6].value
+            parsed_data['parsed_post_data'][c[1].value] = {}
+            str_json = wrapper_for_json_parse(c[6].value)
+            parsed_data['parsed_post_data'][c[1].value][c[2].value] = str_json                
             parsed_data['response_code'][c[1].value] = {}
             parsed_data['response_code'][c[1].value][c[2].value] = c[7].value
             parsed_data['response'][c[1].value] = {}
             parsed_data['response'][c[1].value][c[2].value] = c[8].value                
             parsed_data['parsed_response'][c[1].value] = {}
-            s = c[8].value
-            try:
-                str_json = json_parse(s)
-            except Exception as e:
-                print(e)
-                str_json = ''
+            str_json = wrapper_for_json_parse(c[8].value)
             parsed_data['parsed_response'][c[1].value][c[2].value] = str_json                
                 
         elif last_point is not None:
@@ -910,6 +918,8 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
                 parsed_data['headers_name'][last_point].append(c[3].value)
                 if c[4].value is not None:
                     parsed_data['headers_value'][last_point][c[3].value] = c[4].value
+                else:
+                    parsed_data['headers_value'][last_point][c[3].value] = ''
             if c[5].value is not None:
                 parsed_data['url'][last_point].append(c[5].value)
             if c[6].value is not None:
@@ -918,19 +928,27 @@ def read_data(filename, sheet_name='__active', diapasone=('A1', 'I40'), validate
                 parsed_data['response_code'][last_point][c[2].value] = c[7].value
             if c[8].value is not None:
                 parsed_data['response'][last_point][c[2].value] = c[8].value
-                s = c[8].value
-                try:
-                    str_json = json_parse(s)
-                except Exception as e:
-                    print(e)
-                    str_json = ''
+                str_json = wrapper_for_json_parse(c[8].value)
                 parsed_data['parsed_response'][last_point][c[2].value] = str_json  
             
     return parsed_data
         
+parsed_data['headers_value']['token']
+
+parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
+
+for p in parsed_data['headers_name']:
+    print(parsed_data['headers_name'][p])
+    
 
 
-parsed_data = read_data(filename, sheet_name='data')        
+for p in parsed_data['headers_value']:
+    print(parsed_data['headers_value'][p])
+
+
+print(parsed_data['parsed_headers_value'])
+
+parsed_data['headers_value']
 
 s='{"error": "method_not_allowed", "error_description": "Request method "GET" not supported"}'
 json.loads(s)
@@ -981,10 +999,34 @@ for points in parsed_data['parsed_response']:
             
 
 'token_mw' in dict(settings['getter']['token'].items())
+getters = filling_getters(settings, parsed_data, getters )             
+setters = filling_setters(settings, setters, getters)
+setters
+setters={}
+getters={}
+settings['getter']
+parsed_data['parsed_response']
+filename = 'response.txt'
+
+parsed_data['response']['getToken']['post']
 
 
-
-                
+def reading_response_from_file(filename, parsed_data, point='', verb='' ):
+    
+    with open(filename, encoding='utf-8' ) as f:
+        for line in f.readlines():
+            for lin in line.split('/n'):
+                points = []
+                i = line.find('{')
+                for l in lin[:i].split():
+                    points.append(l)
+                if point!='' and verb !='':
+                    parsed_data['response'][points[0]][points[1]] = lin[i:]
+                else:
+                    parsed_data['response'][point][verb] = lin[i:]
+    return parsed_data
+                    
+    
 def filling_getters(settings, parsed_data, getters ):             
     
     for points in parsed_data['parsed_response']:
@@ -996,25 +1038,47 @@ def filling_getters(settings, parsed_data, getters ):
                             for re in parsed_data['parsed_response'][points][verbs][r]:
                                 if isType(parsed_data['parsed_response'][points][verbs][r][re]) >=2:
                                     for res in parsed_data['parsed_response'][points][verbs][r][re]:
-                                        if settings['getter'].get(points,0):
-                                            if res in list(settings['getter_inv'][points].keys()):
-                                                alias = list(settings['getter'][points].keys())[0]
-                                                getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]
-                                                
+                                        if isType(parsed_data['parsed_response'][points][verbs][r][re][res]) >=2:
+                                            for resp in parsed_data['parsed_response'][points][verbs][r][re][res]:
+                                                if isType(parsed_data['parsed_response'][points][verbs][r][re][res][resp]) >=2:
+                                                    for respo in parsed_data['parsed_response'][points][verbs][r][re][res][resp]:
+                                                        if points == 'loginV2':print(respo)
+                                                        if settings['getter'].get(points,0):
+                                                            if respo in list(settings['getter_inv'][points].keys()):
+                                                                alias = list(settings['getter'][points].keys())[0]
+                                                                getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res][resp][respo]
+                                                else:
+                                                    if points == 'loginV2':print(resp)
+                                                    
+                                                    if settings['getter'].get(points,0):    
+                                                        if resp in list(settings['getter_inv'][points].keys()):
+                                                            alias = list(settings['getter'][points].keys())[0]
+                                                            getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][resp]                   
+                                        else:
+                                            if points == 'loginV2':print(res)
+                                            
+                                            if settings['getter'].get(points,0):    
+                                                if res in list(settings['getter_inv'][points].keys()):
+                                                    alias = list(settings['getter'][points].keys())[0]
+                                                    getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]      
                                 else:
+                                    if points == 'loginV2':print(re)
+                                    
                                     if settings['getter'].get(points,0):
                                         if re in list(settings['getter_inv'][points].keys()):
                                             alias = list(settings['getter'][points].keys())[0]
                                             getters[alias] = parsed_data['parsed_response'][points][verbs][r][re]
  
                         else:
+                            if points == 'loginV2':print(r)
+                            
                             if settings['getter'].get(points,0):
                                 if r in list(settings['getter_inv'][points].keys()):
                                     alias = list(settings['getter'][points].keys())[0]
                                     getters[alias] = parsed_data['parsed_response'][points][verbs][r]
     return getters
  
- 
+points = 'loginV2'
 def filling_setters(settings, setters, getters):
     
     for sett in settings['setter']:
@@ -1033,6 +1097,7 @@ def filling_setters(settings, setters, getters):
                 setters[set] = set
     return setters
  
+setters
 
 settings['getter'].keys()
 settings['getter']
@@ -1042,46 +1107,152 @@ settings['setter_inv']
 parsed_data['post_data']
 getters
 setters
+settings['setter_inv']
+parsed_data['headers_value']['settings'].keys()
+parsed_data['parsed_post_data'].keys()
+settings['setter_inv']['settings'].keys()
+
+
+for p in settings['setter_inv']:
+    for field in settings['setter_inv'][p]:
+        print(p, field)
+        print('headers')
+        try:
+            print(parsed_data['headers_value'][p], settings['setter_inv'][p])
+            # if parsed_data['headers_value'][p][field] == settings['setter_inv'][p][field]:
+            if parsed_data['headers_value'][p] == settings['setter_inv'][p]:
+                print(1)
+            print('post')
+        except Exception as e:
+            print(e)
+        try:
+            for v in parsed_data['parsed_post_data'][p]: 
+                print('verb', v)
+                print(parsed_data['parsed_post_data'][p][v], settings['setter_inv'][p])
+
+                try:
+                    for dat in parsed_data['parsed_post_data'][p][v]:
+                        print(parsed_data['parsed_post_data'][p][v][dat], settings['setter_inv'][p])
+                        if parsed_data['parsed_post_data'][p][v][dat] == settings['setter_inv'][p]:
+                            print(3)
+                except:
+                                    
+                    if parsed_data['parsed_post_data'][p][v] == settings['setter_inv'][p]:
+                        print(2)
+        except Exception as e:
+            print(e)
+            
+            
+            
+            
+            
+                 
 settings['getter']['token']   
 list(settings['setter_inv']['getRelPhone'].keys())
-         
+field_for_subst = ['parsed_post_data', 'headers_value' ]
+field ='parsed_post_data'
+
+for p in parsed_data[field_for_subst[1]]:
+    print(p)
+    for v in parsed_data[field_for_subst[1]][p]:
+        print(v)
+
+
+parsed_data['parsed_headers_value']
+'settings' in settings['setter'].keys()
+
+parent = ['']
+parent.append(1)
+import copy
+p0 = copy(parent)
+parent
+
+def parse_dict(s, list_, parent=[], n=0, dic=0):
+    print()
+    # print('s,list_', s,list_)
+    if s in list_:
+        print('||||parseDict', s, parent)
+        yield s, parent
+    if isType(s)<2:
+        # print(s)
+        # yield (s,list_, n,dic)
+        yield '', parent
+    if isType(s)==2:
+        for c in s:
+            yield from parse_dict(c, list_, parent, n+1, dic)
+        # print()
+    if isType(s)==3:
+        for c in s:
+            # yield (c,n+1,dic)
+            print('parseDict 0', c,'s[c]',s[c], 'par', parent)
+            
+            if c in list_:
+                print('||||parseDict', c, parent)
+                yield c, parent
+            if isType( s[c]) >=2:    
+                parent0= copy.deepcopy(parent)
+                parent0.append(c)
+                yield from parse_dict(s[c], list_, parent0, n, dic+1)
+        dic -=1
+    
+list(settings['setter_inv'].items())
+parsed_data['headers_value']
+setters
+parsed_data['headers_name']#['offers']
+
+
 def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
-    
-    for field in field_for_subst:
-        for points in parsed_data[field]:
-            if points in settings['getter'].keys():
-                for verbs in parsed_data[field][points]:
-                    if isType(parsed_data[field][points][verbs]) >=2:
-                        for r in parsed_data[field][points][verbs]:
-                            if isType(parsed_data[field][points][verbs][r]) >=2:
-                                for re in parsed_data[field][points][verbs][r]:
-                                    if isType(parsed_data[field][points][verbs][r][re]) >=2:
-                                        for res in parsed_data[field][points][verbs][r][re]:
-                                            if settings['getter'].get(points,0):
-                                                if res in list(settings['getter_inv'][points].keys()):
-                                                    alias = settings['setter_inv'][points]
-                                                    # getters[alias] = 
-                                                    print('res=', res)
-                                                    parsed_data[field][points][verbs][r][re][res] = alias #settings['setter_inv'][points][res]
-                                                    # setters[alias]
-                                                    
-                                    else:
-                                        if settings['getter'].get(points,0):
-                                            if re in list(*settings['getter'][points].items()):
-                                                alias = list(settings['getter'][points].keys())[0]
-                                                getters[alias] = parsed_data[field][points][verbs][r][re]
-    
-                            else:
-                                if settings['getter'].get(points,0):
-                                    if r in list(*settings['getter'][points].items()):
-                                        alias = list(settings['getter'][points].keys())[0]
-                                        getters[alias] = parsed_data[field][points][verbs][r]
-    
-    
-    
+
+    for p in settings['setter_inv']:
+        print(p)
+        key = list(settings['setter_inv'][p].keys())
+        lis = list(parsed_data['headers_value'].get(p, 0).keys())
+        for k in key:
+            print(f'key={key}, {k} in {lis}, {k in lis}')
+            if k in lis:
+                print()
+                parsed_data['headers_value'][p][k] = setters[settings['setter_inv'][p][k]] 
+                print()
+            print()
+
+    for p in settings['setter_inv']:
+        print(p)
+        key = list(settings['setter_inv'][p].keys())
+        lis = parsed_data['post_data'].get(p, 0).items()
+        if lis != 0:
+            for li_k, li_v in parsed_data['parsed_post_data'].get(p, 0).items():
+                # print('key')
+                # print(li_k)
+                # print(li_v)
+                try:
+                    _ = li_v.items()
+                    for l_k, l_v in li_v.items():
+                        try:
+                            _ = l_v.items()
+                            
+                            
+                            for _k, _v in l_v.items():
+                                if p=='getRelPhone':
+                                    print(f'|             {_v}     |{_k}')
+                                
+                                print(f'|point {p}, value {_v}, {_k} in {key}, {_k in key}')
+                                if _k in key:
+                                    print()
+                                    print("_k", _k)
+                                    # parsed_data['parsed_post_data'][p][_k] = setters[settings['setter_inv'][p][_k]] 
+                                    print ("parsed_data['parsed_post_data'][p][li_k][l_k][_k]", parsed_data['parsed_post_data'][p][li_k][l_k][_k]) 
+                                    print("setters[settings['setter_inv'][p][_k]]", settings['setter_inv'][p][_k], p, _k) 
+                                    print()
+                                print()
+                        except: pass
+                except: pass
+
+
+parsed_data['headers_value']
+settings['setter_inv']['getRelPhone']
 if settings['getter'].get(point,0):
-                    
-                    
+setters['{{phone}}']                
+setters  
                     
                     
                     
@@ -1146,18 +1317,10 @@ s3 = "{'access_token': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJvcGV
 
 
 
+settings
 
 
-def serching_and_substitution_variables(s, point, settings):
-    if isType(settings['searching'])==3:
-        for p in settings['searching']:
-            if point == p:
-                for value in settings['searching'][p]:
-                    if value == s:
-                        settings['searching'][p][s]
-    
-    if isType(settings['substitution'])==3:
-        if s == ''
+  
 
 
 
@@ -1230,7 +1393,9 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                 print()
                 print()
             
-            workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
+
+            workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
+            # workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
             # workbook,worksheet,resp_counter, y =  write_to_excel2(resp, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+8)
             # workbook,worksheet,resp_counter2, y2 =  write_to_excel2(parsed_data['response'][point][verb],  current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+6+8)
             print('resp',type(resp), len(resp))
@@ -1246,6 +1411,8 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
             header_counter += 1
         counter = max(counter+1, verb_counter, header_counter) + 1
     workbook.close()
+
+
 write_2_excel_parsed_data(parsed_data, settings )
     
     
@@ -1290,7 +1457,8 @@ log
 
 import os
 cwd = os.getcwd()
-os.chdir("/path/to/your/folder")
+cwd0 = os.getcwd()
+os.chdir(r"C:\Users\syalosovetskyi\Downloads\python\middleware_script")
 os.listdir('.')
 cwd
 
