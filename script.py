@@ -1,3 +1,4 @@
+
 from json.decoder import JSONDecodeError
 from typing import Dict
 import aiohttp
@@ -5,6 +6,7 @@ import xlsxwriter
 import json, yaml
 import requests, asyncio
 from openpyxl import load_workbook
+import os
 
            
 def ifIter(v):
@@ -452,17 +454,17 @@ def parse_string(s):
         # if 
 
 
-def parse_str(s,n, dic=0):
+def parse_str(s,n=0, dic=0, dense=0):
     if isType(s)<2:
         yield (s,n,dic)
     if isType(s)==2:
         for c in s:
-            yield from parse_str(c, n+1, dic)
+            yield from parse_str(c, n+1, dic, dense=dense)
         print()
     if isType(s)==3:
         for c in s:
             yield (c,n+1,dic)
-            yield from parse_str(s[c], n, dic+1)
+            yield from parse_str(s[c], n+dense, dic+1, dense=dense)
         dic -=1
     
 
@@ -482,35 +484,6 @@ def check_if_filed_in_excluding(parent, field, point, settings, reverse=0):
                 else:
                     print(0)
                     return 0
-
-settings
-
-def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, parent=[], point='', checking='', settings='', param='', x0=0, y0=0, type_s=0): #i,d
-    if param=='':
-        sheet.write(x,y, str(s))
-        if s_new!='':
-            sheet.write(x,y+shift, str(s_new))
-    else:
-        sheet.write(x,y, str(s), param)
-        if s_new!='':
-            sheet.write(x,y+shift, str(s_new), param)
-
-    if x0!=0 or y0!=0:
-            
-            if not check_if_filed_in_excluding(parent, s, point, settings, reverse=0):
-                if s==s_new: check = 1
-                else: check = 0
-            else:
-                check =1
-            if param=='':
-                if type_s: sheet.write(x0,y0+1, type(check) )
-                sheet.write(x0,y0, str(bool(check)) )
-            else:
-                if type_s: sheet.write(x0,y0+1, type(check) )
-                sheet.write(x0,y0, str(bool(check)), param)
-    else:
-        check = 0    
-    return check
 
 
 def border_drawer(workbook):
@@ -550,107 +523,6 @@ def border_drawer(workbook):
     return bd
 
 
-def _write_response_to_excel(resp_old, resp_new='', point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
-    '''Функция для красивого вывода ответа на запрос в файл екселя
-    '''
-    gen_old = parse_str(resp_old,0)
-    if resp_new !='':
-        gen_new = parse_str(resp_new,0)
-        
-    if workbook=='':
-        workbook = xlsxwriter.Workbook(filename)
-        need_close = 1
-    else:
-        need_close =0
-        
-    #смещения нового респонса относитлеьно старого   
-    shift = 4  #max(shift_right, 1) 
-    if current_worksheet=='':
-        worksheet = workbook.add_worksheet(new_worksheet)
-    else:
-        worksheet = current_worksheet
-    if border_draw ==1:
-        bd = border_drawer(workbook)
-            
-    try:
-        i=0
-        shift_right_prev=0
-        shift_right_max = 0
-        str_resp_old=''
-        counter=0
-        border_prev = ''
-        while True:
-            str_resp,shift_down,shift_right =next(gen_old)
-            if resp_new!='':
-                str_resp_old,shift_down_old,shift_right_old =next(gen_old)  #str_resp_prev,n2,d2 =next(gen_example) 
-            else: 
-                str_resp_old=''
-            shift_right+=y0
-            if i==0:
-                shift_right_prev=shift_right
-                n_prev=shift_down
-                     
-            if counter==0:
-                i =x0
-                shift_right_prev=shift_right
-                i_prev=i
-            if shift_right>shift_right_prev:
-                i-=1
-            checking = ''
-            if settings['how to check response'] == 'simple':
-                checking = 'simple'
-            if settings['how to check response'] == 'complicated':
-                if settings['exclude or include fields'] == 'exclude':
-                    checking = 'exclude'
-                if settings['exclude or include fields'] == 'include':
-                    checking = 'include'
-            if shift_down == n_prev and counter>0: #если уровень списка одинаков для текущего и предыдущего
-                if shift_right==shift_right_prev: #если уровень словаря одинаков для текущего и предыдущего
-                    if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old), bd['border_no_bottomleft'])
-                            
-                    else: #иначе устанавливаем только  "без нижней"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),bd['border_no_bottom'])
-
-                    # sett.write(i, d, str(s),border_no_top)
-                    worksheet_write_twice_shift(sheet, x,y, s, shift_on_y, s_new, parent, point, checking, settings='', param='', x0=0, y0=0, type_s=0)
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, checking, point, settings=settings, param = bd['border_no_top'], x0=i, y0=y0-1) #i,d
-                    border_prev = 'no top' #устанавливаем "без верхней " для текущей
-                    counter+=1
-                elif shift_right>shift_right_prev:
-                    if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),bd['border_no_topright'])
-                    else: #иначе устанавливаем только "без правой"
-                        worksheet.write(i_prev, shift_right_prev, str_resp(str_resp_old),border_no_right)
-                    # sett.write(i, d, str(s),border_no_left)
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, param = border_no_left, x0=i, y0=y0-1) #i,d
-                    border_prev = 'no left'
-                    counter+=1
-                else:
-                    # sett.write(i, d, str(s))
-                    worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, x0=i, y0=y0-1) #i,d
-                    border_prev = ''
-                    counter+=1
-            else:
-                # sett.write(i, d, str(s))
-                worksheet_write_twice_shift(worksheet, i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point, settings=settings, x0=i, y0=y0-1) #i,d
-                border_prev = ''
-                counter+=1
-            
-            shift_right_prev = shift_right
-            shift_right_max = max(shift_right_max, shift_right)
-            i_prev = i
-            n_prev = shift_down
-            str_resp_old = str_resp
-            i+=1
-    except Exception as e:
-        print(e)
-    finally:
-        if need_close:
-            workbook.close()
-    return (workbook, worksheet, i-x0, shift_right_max - y0)
-
-
 def check_if_cell_is_not_empty(s):
     try:
         if s is not None and s != '':
@@ -670,6 +542,7 @@ def append_list_in_dict(dict_, list_, elem):
         dict_[list_].append(elem)
     return  dict_
 
+
 def add_record_in_dict(dict_, key, key2, elem):
     print(dict_, key, key2, elem)
     try:
@@ -680,14 +553,9 @@ def add_record_in_dict(dict_, key, key2, elem):
     return  dict_
       
       
-parsed_settings['setter'][c[0].value] = {c[2].value:c[1].value}
-append_list_in_dict(parsed_settings['field of response'], c[1].value, c[2].value )
 filename = 'setting1.xlsx'
 
-      
-settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
   
-settings      
        
 def parse_settings_in_read_settings(settings, c, mode):
     if c[0].value == 'начальная точка': settings['diapasone'].append(c[1].value)
@@ -820,12 +688,8 @@ def parse_2_dict(*args):
 
 
 token = fetchToken()
-resp_sett = requests.get(url_creator('token'), header_creator('token'))
-resp_sett
-gettoken
-token
- 
- 
+
+
 def json_parse(s):
     if s=='' or s is None:
         return s
@@ -842,7 +706,8 @@ def json_parse(s):
             print(e)
             str_json = 'json decode error, maybe unexpectend of string'
     return str_json
- 
+
+
 def wrapper_for_json_parse(value):
     s = value
     try:
@@ -932,83 +797,8 @@ def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I4
                 parsed_data['parsed_response'][last_point][c[2].value] = str_json  
             
     return parsed_data
-        
-parsed_data['headers_value']['token']
-
-parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
-
-for p in parsed_data['headers_name']:
-    print(parsed_data['headers_name'][p])
-    
 
 
-for p in parsed_data['headers_value']:
-    print(parsed_data['headers_value'][p])
-
-
-print(parsed_data['parsed_headers_value'])
-
-parsed_data['headers_value']
-
-s='{"error": "method_not_allowed", "error_description": "Request method "GET" not supported"}'
-json.loads(s)
-
-
-settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
-settings
-
-
-parsed_data['headers_value']
-parsed_data['points']
-parsed_data['post_data']
-list(settings['getter'].keys())
-list(parsed_data['response']['token'].items())
-list(parsed_data['parsed_response']['token'].items())
-list(settings['getter'].items())
-
-list(parsed_data['parsed_response']['token'].items())
-parsed_data['parsed_response']['token']
-
-for i in parsed_data['parsed_response']['token']:
-    print(i)
-    print(parsed_data['parsed_response']['token'][i])
-    
-list(parsed_data['response']['token'].items())
-
-setters = {}
-getters = {}
-
-for points in parsed_data['parsed_response']:
-    for verbs in parsed_data['parsed_response'][points]:
-        print(points, verbs)
-        print(parsed_data['parsed_response'][points][verbs])
-        print(type(parsed_data['parsed_response'][points][verbs]))
-        print()
-        print()
-        
-        for keys in parsed_data['parsed_response'][points][verbs]:
-
-
-            if keys in settings['getter']:
-                for m in settings['getter'][keys]:
-                    print('point=',points, verbs, keys, '  var=', m, '  ref=', settings['getter'][points][m])
-                    if settings['getter'][verbs][m] in parsed_data['parsed_response'][points]:
-                        print('|||||||||')
-                    
-            # print(hv, m)
-            
-
-'token_mw' in dict(settings['getter']['token'].items())
-getters = filling_getters(settings, parsed_data, getters )             
-setters = filling_setters(settings, setters, getters)
-setters
-setters={}
-getters={}
-settings['getter']
-parsed_data['parsed_response']
-filename = 'response.txt'
-
-parsed_data['response']['getToken']['post']
 
 
 def reading_response_from_file(filename, parsed_data, point='', verb='' ):
@@ -1078,7 +868,6 @@ def filling_getters(settings, parsed_data, getters ):
                                     getters[alias] = parsed_data['parsed_response'][points][verbs][r]
     return getters
  
-points = 'loginV2'
 def filling_setters(settings, setters, getters):
     
     for sett in settings['setter']:
@@ -1097,70 +886,17 @@ def filling_setters(settings, setters, getters):
                 setters[set] = set
     return setters
  
-setters
 
-settings['getter'].keys()
-settings['getter']
-settings['getter_inv']
-settings['setter']
-settings['setter_inv']
-parsed_data['post_data']
-getters
-setters
-settings['setter_inv']
-parsed_data['headers_value']['settings'].keys()
-parsed_data['parsed_post_data'].keys()
-settings['setter_inv']['settings'].keys()
+settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
+parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
+setters = {}
+getters = {}
+getters = filling_getters(settings, parsed_data, getters )             
+setters = filling_setters(settings, setters, getters)
 
 
-for p in settings['setter_inv']:
-    for field in settings['setter_inv'][p]:
-        print(p, field)
-        print('headers')
-        try:
-            print(parsed_data['headers_value'][p], settings['setter_inv'][p])
-            # if parsed_data['headers_value'][p][field] == settings['setter_inv'][p][field]:
-            if parsed_data['headers_value'][p] == settings['setter_inv'][p]:
-                print(1)
-            print('post')
-        except Exception as e:
-            print(e)
-        try:
-            for v in parsed_data['parsed_post_data'][p]: 
-                print('verb', v)
-                print(parsed_data['parsed_post_data'][p][v], settings['setter_inv'][p])
 
-                try:
-                    for dat in parsed_data['parsed_post_data'][p][v]:
-                        print(parsed_data['parsed_post_data'][p][v][dat], settings['setter_inv'][p])
-                        if parsed_data['parsed_post_data'][p][v][dat] == settings['setter_inv'][p]:
-                            print(3)
-                except:
-                                    
-                    if parsed_data['parsed_post_data'][p][v] == settings['setter_inv'][p]:
-                        print(2)
-        except Exception as e:
-            print(e)
-            
-            
-            
-            
-            
-                 
-settings['getter']['token']   
-list(settings['setter_inv']['getRelPhone'].keys())
-field_for_subst = ['parsed_post_data', 'headers_value' ]
-field ='parsed_post_data'
-
-for p in parsed_data[field_for_subst[1]]:
-    print(p)
-    for v in parsed_data[field_for_subst[1]][p]:
-        print(v)
-
-
-parsed_data['parsed_headers_value']
-'settings' in settings['setter'].keys()
-
+        
 parent = ['']
 parent.append(1)
 import copy
@@ -1195,10 +931,6 @@ def parse_dict(s, list_, parent=[], n=0, dic=0):
                 yield from parse_dict(s[c], list_, parent0, n, dic+1)
         dic -=1
     
-list(settings['setter_inv'].items())
-parsed_data['headers_value']
-setters
-parsed_data['headers_name']#['offers']
 
 
 def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
@@ -1248,41 +980,6 @@ def substitution_with_setters(settings, parsed_data, getters, setters, field_for
                 except: pass
 
 
-parsed_data['headers_value']
-settings['setter_inv']['getRelPhone']
-if settings['getter'].get(point,0):
-setters['{{phone}}']                
-setters  
-                    
-                    
-                    
-                    
-print(settings['getter'][''])
-                    
-settings['getter']
-          
-          
-            
-for hv in parsed_data['post_data']:
-    if hv in list(settings['getter'].keys()):
-        for m in list(settings['getter'][hv].keys()):
-            print(hv, m)
-        # print(hv)
-        
-        
-for pd in parsed_data['post_data']:
-    if pd in list(settings['setter'].keys()):
-        print(pd)
-    
-
-    
-print( list(settings['setter'].keys()))
-
-
-for pd in parsed_data:
-    print(pd)
-
-
 
 
 
@@ -1323,18 +1020,246 @@ settings
   
 
 
+def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, parent=[], point='', checking='', settings='', param='', x0=0, y0=0, type_s=0): #i,d
+    if param=='':
+        sheet.write(x,y, str(s))
+        if s_new!='':
+            sheet.write(x,y+shift, str(s_new))
+    else:
+        sheet.write(x,y, str(s), param)
+        if s_new!='':
+            sheet.write(x,y+shift, str(s_new), param)
+
+    if x0!=0 or y0!=0:
+            
+            if not check_if_filed_in_excluding(parent, s, point, settings, reverse=0):
+                if s==s_new: check = 1
+                else: check = 0
+            else:
+                check =1
+            if param=='':
+                if type_s: sheet.write(x0,y0+1, type(check) )
+                sheet.write(x0,y0, str(bool(check)) )
+            else:
+                if type_s: sheet.write(x0,y0+1, type(check) )
+                sheet.write(x0,y0, str(bool(check)), param)
+    else:
+        check = 0    
+    return check
+
+workbook=''
+current_worksheet=''
+new_worksheet='testings'
+filename='test.xlsx'
+x0=y0=10
+
+def _write_post_data_to_excel( data, point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1,x0=0,y0=0):
+    '''Функция для красивого вывода ответа на запрос в файл екселя
+    '''
+    gen = parse_str(data,0)
+        
+    if workbook=='':
+        workbook = xlsxwriter.Workbook(filename)
+        need_close = 1
+    else:
+        need_close =0
+        
+    if current_worksheet=='':
+        worksheet = workbook.add_worksheet(new_worksheet)
+    else:
+        worksheet = current_worksheet
+    if border_draw ==1:
+        bd = border_drawer(workbook)
+
+    filename
+    new_worksheet
+    gen = parse_str(data,0)
+    workbook = xlsxwriter.Workbook(filename)   
+    worksheet = workbook.add_worksheet(new_worksheet) 
+    try:
+        i=0
+        shift_right_prev = 0
+        shift_right_max = 0
+        str_resp_old=''
+        counter=0
+        border_prev = ''
+        print('init')
+        while True:
+            str_resp,shift_down,shift_right =next(gen)
+            print(str_resp)
+            shift_right+=y0
+            if i==0:
+                shift_right_prev=shift_right
+                n_prev=shift_down
+                     
+            if counter==0:
+                i = x0
+                shift_right_prev=shift_right
+                i_prev=i
+            if shift_right>shift_right_prev:
+                i-=1
+            checking = ''
+            print('postinit')
+
+            if shift_down == n_prev and counter>0: #если уровень списка одинаков для текущего и предыдущего
+                if shift_right==shift_right_prev: #если уровень словаря одинаков для текущего и предыдущего
+                    if border_prev == 'no left': #если для предыдущей клеточки установлена граница "без левой стороны", то устанавливаем "без нижней и левой"
+                        worksheet.write(i_prev, shift_right_prev, str_resp_old, bd['border_no_bottomleft'])
+                            
+                    else: #иначе устанавливаем только  "без нижней"
+                        worksheet.write(i_prev, shift_right_prev, str_resp_old,bd['border_no_bottom'])
+
+                    # sett.write(i, d, str(s),border_no_top)
+                    worksheet.write(i, shift_right,str_resp, bd['border_no_bottom'])
+                    border_prev = 'no top' #устанавливаем "без верхней " для текущей
+                    counter+=1
+                    print('shift_down == n_prev and counter>0')
+
+                elif shift_right>shift_right_prev:
+                    if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
+                        worksheet.write(i_prev, shift_right_prev, str_resp_old,bd['border_no_topright'])
+                    else: #иначе устанавливаем только "без правой"
+                        worksheet.write(i_prev, shift_right_prev, str_resp_old,bd['border_no_right'])
+                    # sett.write(i, d, str(s),border_no_left)
+                    worksheet.write(i, shift_right,str_resp,bd['border_no_left'])
+                    border_prev = 'no left'
+                    counter+=1
+                    print('shift_right>shift_right_prev')
+                else:
+                    # sett.write(i, d, str(s))
+                    worksheet.write(i, shift_right,str_resp)
+                    border_prev = ''
+                    counter+=1
+                    print('shift_right>shift_right_prev else')
+
+            else:
+                # sett.write(i, d, str(s))
+                worksheet.write(i, shift_right,str_resp)
+                border_prev = ''
+                counter+=1
+                print('else else')
+
+            
+            shift_right_prev = shift_right
+            shift_right_max = max(shift_right_max, shift_right)
+            i_prev = i
+            n_prev = shift_down
+            str_resp_old = str_resp
+            i+=1
+            print('post init')
+
+    except Exception as e:
+        print(e)
+    finally:
+        if need_close:
+            print('close0')
+            workbook.close()
+            print('close1')
+    i - x0
+    shift_right_max - y0+1
+    return (workbook, worksheet, i-x0+1, shift_right_max - y0+1)
 
 
+point = 'getToken'
+verb ='post'
+parsed_data['points']
+data = parsed_data['parsed_response'][point][verb]
 
-for i,di in d.items():
-    print(i,di)
 
-for di in d:
-    print(type(di))
-    print(di)
-    print(type(d[di]))
-    print(d[di])
+_write_post_data_to_excel(parsed_data['parsed_post_data'][point][verb] , point=point, filename='test.xlsx', verbose=3, new_worksheet='testings',border_draw=1,x0=10,y0=10)
+
+point = 'loginV2'
+verb ='post'
+resp_old = parsed_data['parsed_response'][point][verb]
+resp_new = parsed_data['parsed_response'][point][verb]
+resp_new
+resp_old == resp_new
+shift_on_y=7
+x0=y0=1
+
+workbook = xlsxwriter.Workbook(filename)
+worksheet = workbook.add_worksheet(new_worksheet)
+need_close =1
+
+
+def _write_response_to_excel(resp_old, resp_new='', point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1, shift_on_y=3,x0=0,y0=0):
+    '''Функция для красивого вывода ответа на запрос в файл екселя
+    '''
+
+    gen_old = parse_str(resp_old,0)
+    if resp_new !='':
+        gen_new = parse_str(resp_new,0)
+        
+    if workbook=='':
+        workbook = xlsxwriter.Workbook(filename)
+        need_close = 1
+    else:
+        need_close =0
+        
+    #смещения нового респонса относитлеьно старого   
+    shift = 4  #max(shift_right, 1) 
+    if current_worksheet=='':
+        worksheet = workbook.add_worksheet(new_worksheet)
+    else:
+        worksheet = current_worksheet
     
+    
+
+    
+    gen_old = parse_str(resp_old,x0,y0,dense=1)
+    gen_new = parse_str(resp_new,x0,y0,dense=1)
+
+    workbook = xlsxwriter.Workbook(filename)
+    worksheet = workbook.add_worksheet(new_worksheet)
+    if border_draw ==1:
+        bd = border_drawer(workbook)
+    need_close =1
+    
+    try:
+        i=0
+        shift_right_prev = 0
+        shift_right_max = 0
+        shift_down_max = 0
+        str_resp_old=''
+        counter=0
+        while True:
+            str_resp,shift_down,shift_right =next(gen_new)
+            shift_down_max = max(shift_down_max, shift_down)
+
+            str_resp_old,shift_down_old,shift_right_old =next(gen_old)  #str_resp_prev,n2,d2 =next(gen_example) 
+                     
+            if counter==0:
+                i = x0
+                shift_right_prev=shift_right
+            if shift_right>shift_right_prev:
+                i-=1
+            checking = ''
+            if settings['how to check response'] == 'simple':
+                checking = 'simple'
+            if settings['how to check response'] == 'complicated':
+                if settings['exclude or include fields'] == 'exclude':
+                    checking = 'exclude'
+                if settings['exclude or include fields'] == 'include':
+                    checking = 'include'
+            print(f'shift_down_max {shift_down_max}, i {i}, shift_right {shift_right}, shift_right_prev {shift_right_prev} ')
+            print(f'3str_resp {str_resp}, str_resp_old {str_resp_old}, |x {shift_down+i}, |y {shift_right}, shift_on_y+shift_right {shift_on_y+shift_right}')
+            worksheet_write_twice_shift(worksheet, shift_down_max+i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point,checking=checking, settings=settings, x0=i, y0=y0-1) #i,d
+            counter+=1
+            
+            shift_right_prev = shift_right
+            # shift_down_prev = shift_down
+            shift_right_max = max(shift_right_max, shift_right)
+            # shift_down_max = max(shift_down_prev, shift_down)
+            i+=1
+            counter+=1
+    except Exception as e:
+        print(e)
+    finally:
+        if need_close:
+            workbook.close()
+    print(f'shift_down-x0+1 {shift_down-x0+1}, shift_right_max - y0 {shift_right_max - y0+1}')
+
+    return (workbook, worksheet, i-x0, shift_right_max - y0)
 
 
 
@@ -1353,11 +1278,9 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
         for verb in parsed_data['verbs'][point]:
             # worksheet.write( counter, point_counter+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
             y_data_counter =0
-            try:
-                data = json.loads(parsed_data['post_data'][point].get(verb,''))
-            except:
-                data = parsed_data['post_data'][point].get(verb,'')
-            workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
+            data = parsed_data['parsed_post_data'][point].get(verb,'')
+            
+            workbook,worksheet,resp_counter, y_data_counter = _write_post_data_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
             print('log0')
             worksheet.write( verb_counter, point_counter+1, str(verb))
             try:
@@ -1370,37 +1293,15 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                 print(e)
                 resp = r.text
             print('log1')
-            
             worksheet.write( verb_counter, point_counter+y_data_counter+7, str(parsed_data['response_code'][point][verb])+str(r))
-
-            # workbook,worksheet,resp_counter, y_resp_counter = write_to_excel(parsed_data['response'][point][verb],verbose=3, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+8)
-
-            print(point,verb)
-            # print('partsed', parsed_data['response'][point][verb])
-            # print('fresh', resp)
-            print('log2')
-    
-            # worksheet.write( verb_counter, point_counter+ y_data_counter + y_resp_counter+2+7, str(r) )
-            # workbook,worksheet,resp_counter, y_resp_counter = write_to_excel(resp,verbose=3, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+y_resp_counter+2+8)
-            print(parsed_data['response'][point][verb])
-            try:
-                resp2 = json.loads(parsed_data['response'][point][verb])
-            except:
-                resp2 = parsed_data['response'][point][verb]
-                print()
-                print()
-                print(resp2)
-                print()
-                print()
-            
-
-            workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
+            resp_old = parsed_data['parsed_response'][point][verb]
+            print(f'point {point} x0 = verb_counter {verb_counter}, y0= point_counter+9 {point_counter+9} type of resp_old {type(resp_old)} {isType(resp_old)}')
+            workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( resp, resp_old, point = point, shift_on_y=5, verbose=3,
+                                                                                       current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+9)
+            print(f'after resp  {point} x0 = resp_counter {resp_counter}, y0= y_data_counter {y_data_counter} смещение {resp_counter}, {y_data_counter-point_counter+9}')
             # workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
             # workbook,worksheet,resp_counter, y =  write_to_excel2(resp, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+8)
             # workbook,worksheet,resp_counter2, y2 =  write_to_excel2(parsed_data['response'][point][verb],  current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+6+8)
-            print('resp',type(resp), len(resp))
-            print("parsed_data['response'][point][verb]", type(parsed_data['response'][point][verb]), len( parsed_data['response'][point][verb]))
-            print('log3')
             
             verb_counter += resp_counter+1
         worksheet.write( counter, point_counter+2, *parsed_data['url'][point])
@@ -1424,43 +1325,12 @@ write_response_data(parsed_data )
 
 
 
-
-q=0     
-for c in  x:
-    q+=1
-    if ifIter(c):
-        print(type(c),len(c), q)
-        if ifDict(c):
-            for k0,v0 in c.items():
-                print(k0)
-                if q ==4:
-                    printDict(v0)
-                else:
-                    print(v0)        
-                    
-        elif ifList(c):
-            for v0 in c:
-                if q ==4:
-                    printDict(v0)
-                else:
-                    print(v0)        
-        else:
-            print(c)    
-        print()
-        # print(ifiter)
-    else:
-        print(type(c))
-        print(c)
-    print()
-
-log
-
-import os
-cwd = os.getcwd()
-cwd0 = os.getcwd()
-os.chdir(r"C:\Users\syalosovetskyi\Downloads\python\middleware_script")
-os.listdir('.')
-cwd
+def change_dir():
+    cwd = os.getcwd()
+    cwd0 = os.getcwd()
+    os.chdir(r"C:\Users\syalosovetskyi\Downloads\python\middleware_script")
+    os.listdir('.')
+    cwd
 
 def prompt(s):
     print(s)
@@ -1482,7 +1352,14 @@ def user_interface():
 def init():
     
     s = int(user_interface() )
+    settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
+    parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
+    getters = filling_getters(settings, parsed_data, getters )             
+    setters = filling_setters(settings, setters, getters)
+    getters
+    substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])            
     
+
     
     
     
