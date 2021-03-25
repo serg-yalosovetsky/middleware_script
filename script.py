@@ -553,9 +553,6 @@ def add_record_in_dict(dict_, key, key2, elem):
     return  dict_
       
       
-filename = 'setting1.xlsx'
-
-  
        
 def parse_settings_in_read_settings(settings, c, mode):
     if c[0].value == 'начальная точка': settings['diapasone'].append(c[1].value)
@@ -686,8 +683,6 @@ def parse_2_dict(*args):
         s+='}'
     return s
 
-
-token = fetchToken()
 
 
 def json_parse(s):
@@ -1181,45 +1176,6 @@ worksheet = workbook.add_worksheet(new_worksheet)
 need_close =1
 
 
-
-def deco_border(accu):
-    def inner_deco(func):
-        def wrapper_for_worsheet_write(*args, **kwargs):
-            value = kwargs['val'] 
-            if accum != []:
-                print(accum, value)
-                func(*args, **kwargs)
-            else:
-                print('to early')
-            accum.append(value)
-        return wrapper_for_worsheet_write
-    return inner_deco
-lis= []
-
-
-def wrapper(func, list_, *args, **kwargs):
-    if list != []:
-        print(list)
-        func( *args, **kwargs)
-    else:
-        print('oops')
-    x = kwargs['val']
-    list_.append(x)
-    return list_
-
-
-def a(val=2):
-    print(val)
-    return (int(val))
-
-lis = wrapper(a,lis, val=4)
-lis
-
-q = a(50)
-
-
-
-
 def _write_response_to_excel(resp_old, resp_new, point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1, shift_on_y=3,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
@@ -1281,6 +1237,11 @@ def _write_response_to_excel(resp_old, resp_new, point='', filename='test.xlsx',
                     checking = 'include'
             print(f'shift_down_max {shift_down_max}, i {i}, shift_right {shift_right}, shift_right_prev {shift_right_prev} ')
             print(f'3str_resp {str_resp}, str_resp_old {str_resp_old}, |x {shift_down+i}, |y {shift_right}, shift_on_y+shift_right {shift_on_y+shift_right}')
+            
+            
+
+            
+            
             worksheet_write_twice_shift(worksheet, shift_down_max+i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point,checking=checking, settings=settings, x0=i, y0=y0-1) #i,d
             worksheet.write(shift_down_max+i, shift_right,str_resp) 
             worksheet.write(1,2, bd['border']) 
@@ -1300,6 +1261,20 @@ def _write_response_to_excel(resp_old, resp_new, point='', filename='test.xlsx',
     print(f'shift_down-x0+1 {shift_down-x0+1}, shift_right_max - y0 {shift_right_max - y0+1}')
 
     return (workbook, worksheet, i-x0, shift_right_max - y0)
+
+            
+def wrapper(func, list_, ws, x,y,s, *args, **kwargs):
+    '''
+    lis, return_ = wrapper(worksheet_write_twice_shift, lis, worksheet, shift_down_max+i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point,checking=checking, settings=settings, x0=i, y0=y0-1) 
+    '''
+    if list_ != []:
+        print(list_)
+        return_ =func(ws, x,y,s *args,prev=list_[-1] ,**kwargs)
+    else:
+        print('oops')
+    x = kwargs['val']
+    list_.append([x,y,s])
+    return list_, return_ ### DECOMMENT
 
 
 
@@ -1392,6 +1367,9 @@ def user_interface():
 def init():
     
     s = int(user_interface() )
+    token = fetchToken()
+    filename = 'setting1.xlsx'
+    
     settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
     parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
     getters = filling_getters(settings, parsed_data, getters )             
