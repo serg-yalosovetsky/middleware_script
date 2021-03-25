@@ -1,4 +1,4 @@
-
+import argparse
 from json.decoder import JSONDecodeError
 from typing import Dict
 import aiohttp
@@ -1313,10 +1313,18 @@ def user_interface():
     3. вывод подробной информации о конкретной точке
     4. вывод всей информации
     5. тестирование точки''')
-    
 
-def init():
-    
+def parse_for_argparser():
+    parser = argparse.ArgumentParser(description='script for middleware testing')
+    parser.add_argument('-n', action ='store', dest='n', help='simple value')
+    parser.add_argument('-o','--optional', type=int, default=2, help='provide an integer (default: 2)')
+    args = parser.parse_args()
+    print(args.n)
+    print(args.optional) 
+    return args 
+
+def __init__():
+    args = parse_for_argparser()
     s = int(user_interface() )
     token = fetchToken()
     filename = 'setting1.xlsx'
