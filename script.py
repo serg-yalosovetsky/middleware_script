@@ -743,15 +743,20 @@ def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I4
                    'post_data':{}, 'parsed_post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
 
     i = 0
+    last_point=''
     for *c, in cells:  
         i +=1
         if i==1:
             continue
         if c[1].value is not None and is_int(c[0].value) :
             parsed_data['points'].append(c[1].value)
+            if last_point!='' and last_verb!='' and not parsed_data['parsed_response'][last_point].get(last_verb,0):
+                str_json = wrapper_for_json_parse(parsed_data['response'][last_point][last_verb])
+                parsed_data['parsed_response'][last_point][last_verb] = str_json   
             last_point = c[1].value
             parsed_data['verbs'][c[1].value] = []
             parsed_data['verbs'][c[1].value].append(c[2].value)
+            last_verb =  c[2].value
             parsed_data['headers_name'][c[1].value] = []
             parsed_data['headers_name'][c[1].value].append(c[3].value)
             parsed_data['headers_value'][c[1].value] = {}
@@ -768,12 +773,16 @@ def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I4
             parsed_data['response'][c[1].value] = {}
             parsed_data['response'][c[1].value][c[2].value] = c[8].value                
             parsed_data['parsed_response'][c[1].value] = {}
-            str_json = wrapper_for_json_parse(c[8].value)
-            parsed_data['parsed_response'][c[1].value][c[2].value] = str_json                
+            # str_json = wrapper_for_json_parse(c[8].value)
+            # parsed_data['parsed_response'][c[1].value][c[2].value] = str_json                
                 
         elif last_point is not None:
             if c[2].value is not None:
                 parsed_data['verbs'][last_point].append(c[2].value)
+                str_json = wrapper_for_json_parse(parsed_data['response'][last_point][last_verb])
+                parsed_data['parsed_response'][last_point][last_verb] = str_json   
+          
+                last_verb =  c[2].value
             if c[3].value is not None:
                 parsed_data['headers_name'][last_point].append(c[3].value)
                 if c[4].value is not None:
@@ -787,7 +796,12 @@ def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I4
             if c[7].value is not None:
                 parsed_data['response_code'][last_point][c[2].value] = c[7].value
             if c[8].value is not None:
-                parsed_data['response'][last_point][c[2].value] = c[8].value
+                if parsed_data['response'][last_point].get(last_verb, 0): 
+                    parsed_data['response'][last_point][last_verb] += c[8].value
+                else:
+                    parsed_data['response'][last_point][last_verb] = c[8].value
+                    
+            else:
                 str_json = wrapper_for_json_parse(c[8].value)
                 parsed_data['parsed_response'][last_point][c[2].value] = str_json  
             
@@ -973,7 +987,7 @@ def substitution_with_setters(settings, parsed_data, getters, setters, field_for
                                 print()
                         except: pass
                 except: pass
-
+    return parsed_data
 
 
 
@@ -1291,12 +1305,12 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
 
 
 
-def change_dir():
+def change_dir(str_change_dir=''):
     cwd = os.getcwd()
-    cwd0 = os.getcwd()
-    os.chdir(r"C:\Users\syalosovetskyi\Downloads\python\middleware_script")
-    os.listdir('.')
-    cwd
+    if str_change_dir!='':
+        os.chdir(str_change_dir)
+    files = os.listdir('.')
+    return cwd, files
 
 def prompt(s):
     print(s)
@@ -1309,15 +1323,41 @@ def user_interface():
     print('Интерфейс для программы тестирования')
     print('''Режимы работы: 
     1. считывание данных из файла,
-    2. вывод текущих точек,
-    3. вывод подробной информации о конкретной точке
-    4. вывод всей информации
-    5. тестирование точки''')
+    2. считывание ответа из текстового файла,
+    3. вывод текущих точек,
+    4. вывод подробной информации о конкретной точке
+    5. вывод текущей директории и список файлов
+    6. тестирование точки''')
+    if ui := input()=='1':
+        ui2 = input('Введите имя файла, ентер для вывода списка файлов в текущей директории, exit для выхода')
+        if  ui2 == '':
+            cwd, files = change_dir()
+            print(f'Текущий путь: {cwd}')
+            print('Список файлов: ')
+            print(*files, sep='\n')
+        elif ui2 == 'exit':
+            pass
+        else:
+            print(f'Чтение файла настроек {ui2}')
+                    
+            settings = read_settings(filename='setting.xlsx', sheet_name='settings')        
+            parsed_data = read_data(filename='setting.xlsx',settings = settings , sheet_name='data')    
+            getters = filling_getters(settings, parsed_data, getters )             
+            setters = filling_setters(settings, setters, getters)
+            if len(getters)>0:
+                parsed_data = substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])          
+                
+    if ui =='2':
+              
+        
+            
 
 def parse_for_argparser():
     parser = argparse.ArgumentParser(description='script for middleware testing')
     parser.add_argument('-n', action ='store', dest='n', help='simple value')
-    parser.add_argument('-o','--optional', type=int, default=2, help='provide an integer (default: 2)')
+    parser.add_argument('--verbose', '-v', action='count')
+    parser.add_argument('-i','--input', type=string, default=2, help='provide an integer (default: 2)')
+    parser.add_argument('-o','--output', type=int, default=2, help='provide an integer (default: 2)')
     args = parser.parse_args()
     print(args.n)
     print(args.optional) 
@@ -1329,15 +1369,15 @@ def __init__():
     token = fetchToken()
     filename = 'setting1.xlsx'
     
-    settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
-    parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
+    settings = read_settings(filename='setting.xlsx', sheet_name='settings')        
+    parsed_data = read_data(filename='setting.xlsx',settings = settings , sheet_name='data')    
     getters = filling_getters(settings, parsed_data, getters )             
     setters = filling_setters(settings, setters, getters)
     getters
     substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])            
     write_2_excel_parsed_data(parsed_data, settings )
 
-
+    parsed_data['parsed_response']
     
     
     
@@ -1349,3 +1389,18 @@ def __init__():
     log = [{}, {}]
     asyncio.run( _requests(verbs, points, token,  debug=2 ))
     _write_response_to_excel('test')
+
+
+    points = ['token', 'settings', 'links', 'relPhone', 'countMain', 'countDpi', 'bonus', 'offer']
+    token = fetchToken()
+
+
+    for p,v in parsed_data['parsed_response'].items():
+        print(p)
+        print(v)
+        
+
+    for p,v in parsed_data['response'].items():
+        print(p)
+        # print(v)
+        
