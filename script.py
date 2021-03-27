@@ -800,10 +800,9 @@ def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I4
                     parsed_data['response'][last_point][last_verb] += c[8].value
                 else:
                     parsed_data['response'][last_point][last_verb] = c[8].value
-                    
-            else:
-                str_json = wrapper_for_json_parse(c[8].value)
-                parsed_data['parsed_response'][last_point][c[2].value] = str_json  
+        if last_point!='' and last_verb!='' and not parsed_data['parsed_response'][last_point].get(last_verb,0):
+            str_json = wrapper_for_json_parse(parsed_data['response'][last_point][last_verb])
+            parsed_data['parsed_response'][last_point][last_verb] = str_json   
             
     return parsed_data
 
@@ -896,22 +895,6 @@ def filling_setters(settings, setters, getters):
     return setters
  
 
-settings = read_settings(filename='setting1.xlsx', sheet_name='settings')        
-parsed_data = read_data(filename='setting1.xlsx',settings = settings , sheet_name='data')    
-setters = {}
-getters = {}
-getters = filling_getters(settings, parsed_data, getters )             
-setters = filling_setters(settings, setters, getters)
-
-
-
-        
-parent = ['']
-parent.append(1)
-import copy
-p0 = copy(parent)
-parent
-
 def parse_dict(s, list_, parent=[], n=0, dic=0):
     print()
     # print('s,list_', s,list_)
@@ -990,50 +973,15 @@ def substitution_with_setters(settings, parsed_data, getters, setters, field_for
     return parsed_data
 
 
-
-
-
-type(parsed_data['post_data']['getToken']['post'])
-res = parsed_data['response']['getlinks']['post']
-res = str(res)
-parsed_data['post_data']['getToken'].get('post','')
-parsed_data['url']
-write_2_excel_parsed_data(parsed_data, settings )
-
-resp
-type(res)
-dict(res)
-import json,yaml
-resp =  res.replace("'", "\"")
-d= yaml.load(s)
-repr(res)
-
-settings
-
-res2 =res
-res3 = json.loads(s3.replace("'", '"'))
-res3.keys()
-s2 = '{"loginV2": {"error": 0, "values": {"tempToken": "8DBA35BBA4C486592B1BCC0A984DC5BE"}},"identification": {"error": 0, "values": { "id":""}}}'
-g = parse_str(res3, 0)
-s,n,d = next(g)
-s
-s2
-s3 = "{'access_token': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZSI6WyJvcGVuaWQiXSwiZXhwIjoxNjE2NDUwMzI4LCJhdXRob3JpdGllcyI6WyJTVVBFUi1BRE1JTiJdLCJqdGkiOiIyZmNhY2MzYy1mM2I0LTQzNmQtYTYyZC01ZmFlZjdmMGY0YjUiLCJ0ZW5hbnQiOiJYTSIsImNsaWVudF9pZCI6ImludGVybmFsIn0.AaK7IxOhYdjTTvDtx2qa1ndyhjhZN11teSECFcobBnQ8fdIBvsOZzOwqbYv5Kw7cPhh8kGxi5OKjFQqYQjiXIeZFpDf6BzKOvwBu2QUskdFxITpnuLxXrwhemXNHbsuLn1M46LOEmRqYJ8nl6QHEZyEB8SePSNZIWBHCUbGJKWIMoMxdB6PjQjnSSw0WbHsYj4petYEVn56pj3sppyxpr3vppjF3HWM7XtoNvzee9P6fLaKtwuEgDfOXbUYGRNiYPttkV5sR7UjWaEOd4zIklsu2vOetrojiteeVtUALCaUqNaYUoczfRMbvHdeucetrD5Lsi8wmN2oTbvM1Falmzg', 'token_type': 'bearer', 'expires_in': 86399, 'scope': 'openid', 'tenant': 'XM', 'jti': '2fcacc3c-f3b4-436d-a62d-5faef7f0f4b5'}"
-
-
-
-
-settings
-
 def excel_with_border(prev, curr, new,  border, end=0):
     '''curr =[x,y,s] prev=[x0,y0,s0]
-    '''
     if end==0:
         if curr[0]>prev(0) and curr[1]==prev(1):
             нарисовать предыдущую без нижней границы 
         if curr[0]==prev(0) and curr[1]>prev(1):
             нарисовать текущую без верхней границы 
-
+    '''
+    pass
 
 
 def worksheet_write_twice_shift(sheet, x,y, s, shift, s_new, parent=[], point='', checking='', prev='', settings='', param='', x0=0, y0=0, type_s=0): #i,d
@@ -1239,61 +1187,65 @@ def wrapper(func, list_, ws, x,y,s, *args, **kwargs):
     return list_, return_ ### DECOMMENT
 
 
-
-def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', sheet_name='response', **kwargs ):
-    workbook = xlsxwriter.Workbook(filename = filename)
-    worksheet = workbook.add_worksheet(sheet_name)
-    if settings is not None and settings.get('columns_width',0):
-        for c, w in settings['columns_width'].items():
-            worksheet.set_column(int(c), int(c), int(w))
-    counter = 1
-    point_counter = 1  
-    for point in parsed_data['points']:
-        worksheet.write( counter, point_counter, str(point))
-        verb_counter = counter
-        print('log05')
-        for verb in parsed_data['verbs'][point]:
-            # worksheet.write( counter, point_counter+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
-            y_data_counter =0
-            data = parsed_data['parsed_post_data'][point].get(verb,'')
-            print('data')
-            print(data)
-            print('counter, point_couter', counter, point_counter+5)
-            print()
-            # post_counter=0
-            workbook,worksheet,post_counter, y_data_counter = _write_post_data_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
-            print('log0')
-            worksheet.write( verb_counter, point_counter+1, str(verb))
-            try:
-                if verb=='post' and parsed_data['post_data'][point].get(verb,''):
-                    r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point], data=parsed_data['post_data'][point][verb])
-                else:
-                    r = requests.request(verb, *parsed_data['url'][point], headers=parsed_data['headers_value'][point])
-                resp = r.json()
-            except Exception as e:
-                print(e)
-                resp = r.text
-            print('log1')
-            resp_counter = 0
-            worksheet.write( verb_counter, point_counter+y_data_counter+7, str(parsed_data['response_code'][point][verb])+str(r))
-            resp_old = parsed_data['parsed_response'][point][verb]
-            print(f'point {point} x0 = verb_counter {verb_counter}, y0= point_counter+y_data_counter+9 {point_counter+y_data_counter+9} type of resp_old {type(resp_old)} {isType(resp_old)}')
-            workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( resp, resp_old, point = point, shift_on_y=5, verbose=3,
-                                                                                       current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+9)
-            print(f'after resp  {point} x0 = resp_counter {resp_counter}, y0= y_data_counter {y_data_counter} смещение {resp_counter}, {y_data_counter-point_counter+9}')
-            # workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
-            # workbook,worksheet,resp_counter, y =  write_to_excel2(resp, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+8)
-            # workbook,worksheet,resp_counter2, y2 =  write_to_excel2(parsed_data['response'][point][verb],  current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+6+8)
-            
-            verb_counter += max(resp_counter, post_counter)+1
-        worksheet.write( counter, point_counter+2, str(parsed_data['url'][point][0]))
-        header_counter = counter
-        for h in parsed_data['headers_name'][point]:
-            worksheet.write( header_counter, point_counter+3, str(h))
-            worksheet.write( header_counter, point_counter+4, str(parsed_data['headers_value'][point][h]))
-            header_counter += 1
-        counter = max(counter+1, verb_counter, header_counter) + 1
-    workbook.close()
+def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', sheet_name='response', point_ex='' ):
+    try:
+        workbook = xlsxwriter.Workbook(filename = filename)
+        worksheet = workbook.add_worksheet(sheet_name)
+        if settings is not None and settings.get('columns_width',0):
+            for c, w in settings['columns_width'].items():
+                worksheet.set_column(int(c), int(c), int(w))
+        counter = 1
+        point_counter = 1  
+        for point in parsed_data['points']:
+            if point_ex != '' and point_ex != point:
+                break 
+            worksheet.write( counter, point_counter, str(point))
+            verb_counter = counter
+            print('log05')
+            for verb in parsed_data['verbs'][point]:
+                # worksheet.write( counter, point_counter+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
+                y_data_counter =0
+                data = parsed_data['parsed_post_data'][point].get(verb,'')
+                print('data')
+                print(data)
+                print('counter, point_couter', counter, point_counter+5)
+                print()
+                # post_counter=0
+                workbook,worksheet,post_counter, y_data_counter = _write_post_data_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
+                print('log0')
+                worksheet.write( verb_counter, point_counter+1, str(verb))
+                try:
+                    if verb=='post' and parsed_data['post_data'][point].get(verb,''):
+                        r = requests.request(verb, parsed_data['url'][point][0], headers=parsed_data['headers_value'][point], data=parsed_data['post_data'][point][verb])
+                    else:
+                        r = requests.request(verb, parsed_data['url'][point][0], headers=parsed_data['headers_value'][point])
+                    resp = r.json()
+                except Exception as e:
+                    print(e)
+                    resp = r.text
+                print('log1')
+                resp_counter = 0
+                print('parsed_data[response_code][point][verb]', point, verb, r )
+                worksheet.write( verb_counter, point_counter+y_data_counter+7, str(parsed_data['response_code'][point][verb])+' '+str(r.status_code))
+                resp_old = parsed_data['parsed_response'][point][verb]
+                print(f'point {point} x0 = verb_counter {verb_counter}, y0= point_counter+y_data_counter+9 {point_counter+y_data_counter+9} type of resp_old {type(resp_old)} {isType(resp_old)}')
+                workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( resp, resp_old, point = point, shift_on_y=5, verbose=3,
+                                                                                        current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+9)
+                print(f'after resp  {point} x0 = resp_counter {resp_counter}, y0= y_data_counter {y_data_counter} смещение {resp_counter}, {y_data_counter-point_counter+9}')
+                # workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
+                # workbook,worksheet,resp_counter, y =  write_to_excel2(resp, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+8)
+                # workbook,worksheet,resp_counter2, y2 =  write_to_excel2(parsed_data['response'][point][verb],  current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+6+8)
+                
+                verb_counter += max(resp_counter, post_counter)+1
+            worksheet.write( counter, point_counter+2, str(parsed_data['url'][point][0]))
+            header_counter = counter
+            for h in parsed_data['headers_name'][point]:
+                worksheet.write( header_counter, point_counter+3, str(h))
+                worksheet.write( header_counter, point_counter+4, str(parsed_data['headers_value'][point][h]))
+                header_counter += 1
+            counter = max(counter+1, verb_counter, header_counter) + 1
+    finally:
+        workbook.close()
 
 
     
@@ -1317,6 +1269,12 @@ def prompt(s):
     ret = input()
     return ret
         
+def list_directory():
+        cwd, files = change_dir()
+        print(f'Текущий путь: {cwd}')
+        print('Список файлов: ')
+        print(*files, sep='\n')
+
 
 def user_interface():
     
@@ -1327,60 +1285,116 @@ def user_interface():
     3. вывод текущих точек,
     4. вывод подробной информации о конкретной точке
     5. вывод текущей директории и список файлов
-    6. тестирование точки''')
+    6. тестирование точек''')
     if ui := input()=='1':
-        ui2 = input('Введите имя файла, ентер для вывода списка файлов в текущей директории, exit для выхода')
-        if  ui2 == '':
-            cwd, files = change_dir()
-            print(f'Текущий путь: {cwd}')
-            print('Список файлов: ')
-            print(*files, sep='\n')
-        elif ui2 == 'exit':
-            pass
-        else:
-            print(f'Чтение файла настроек {ui2}')
-                    
-            settings = read_settings(filename='setting.xlsx', sheet_name='settings')        
-            parsed_data = read_data(filename='setting.xlsx',settings = settings , sheet_name='data')    
-            getters = filling_getters(settings, parsed_data, getters )             
-            setters = filling_setters(settings, setters, getters)
-            if len(getters)>0:
-                parsed_data = substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])          
-                
+        not_file = 1
+        while not_file:
+            ui2 = input('Введите имя файла, ентер для вывода списка файлов в текущей директории, exit для выхода\n')
+            if  ui2 == '':
+                list_directory()
+            elif ui2 == 'exit':
+                not_file = 0
+                break
+            else:
+                not_file = 0
+                print(f'Чтение файла настроек {ui2}')
+                filename = ui2
+                settings = read_settings(filename=filename, sheet_name='settings')        
+                parsed_data = read_data(filename=filename, settings = settings , sheet_name='data')    
+                getters = {}
+                setters = {}
+                getters = filling_getters(settings, parsed_data, getters )             
+                setters = filling_setters(settings, setters, getters)
+                if len(getters)>0:
+                    parsed_data = substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])        
+
+    
     if ui =='2':
-              
+        not_file = 1
+        while not_file:
+            ui2 = input('Введите имя файла, ентер для вывода списка файлов в текущей директории, exit для выхода\n')
+            if  ui2 == '':
+                list_directory()
+            elif ui2 == 'exit':
+                not_file = 0
+                break
+            else:
+                print(f'Чтение файла настроек {ui2}')
+                not_file = 0
+                filename = ui2
+                parsed_data = reading_response_from_file(filename, parsed_data, point='', verb='' )
+
+    if ui =='3':
+        print(parsed_data['points'])
+    if ui =='4':
+        ui2 = input('Введите имя точки:\n')
+        print(f' точка: {ui2}')
+        print(f'методы: {parsed_data["verbs"][ui2]}')
+        print(f'url адрес: {parsed_data["url"][ui2]}')
+        print(f'заголовки: {parsed_data["headers_value"][ui2]}')
+        print(f'данные, передаваемые на сервер: {parsed_data["parsed_post_data"][ui2]}')
+        print(f'код ответа: {parsed_data["response_code"][ui2]}')
+        print(f'ответ: {parsed_data["parsed_response"][ui2]}')
+    if ui =='5':
+        cwd, files = change_dir()
+        print(f'Текущий путь: {cwd}')
+        print('Список файлов: ')
+        print(*files, sep='\n')
+    if ui =='6':
+        not_file = 1
+        while not_file:
+            ui2 = input('Введите имя файла для записи. Внимание, файл будет перезаписан!\n')
+            if  ui2 == '':
+                cwd, files = change_dir()
+                print(f'Текущий путь: {cwd}')
+                print('Список файлов: ')
+                print(*files, sep='\n')
+            elif ui2 == 'exit':
+                not_file = 0
+                break
+            else:
+                print(f'Запись в файл {ui2}')
+                not_file = 0
+                filename = ui2
+                parsed_data = reading_response_from_file(filename, parsed_data, point='', verb='' )
+                print(f'Запись успешна')
+                write_2_excel_parsed_data(parsed_data, settings, filename=filename )
+    return ui, ui2
+        
+    
+            
         
             
 
 def parse_for_argparser():
     parser = argparse.ArgumentParser(description='script for middleware testing')
-    parser.add_argument('-n', action ='store', dest='n', help='simple value')
-    parser.add_argument('--verbose', '-v', action='count')
-    parser.add_argument('-i','--input', type=string, default=2, help='provide an integer (default: 2)')
-    parser.add_argument('-o','--output', type=int, default=2, help='provide an integer (default: 2)')
+    parser.add_argument('-l', '--list', dest='l', help='list current work directory and files in directory')
+    parser.add_argument('--verbose', '-v', dest='v', action='count')
+    parser.add_argument('-i','--input', dest='i', default='settings.xlsx', help='input file for point data (default: settings.xlsx)')
+    parser.add_argument('-o','--output', dest='o', default='response.xlsx', help='output file for qa testing (default: response.xlsx)')
     args = parser.parse_args()
-    print(args.n)
-    print(args.optional) 
+    print(args.i)
+    print(args.o)
+    print(args.v)
+    print(args.l)
     return args 
 
-def __init__():
+def init():
     args = parse_for_argparser()
-    s = int(user_interface() )
+    s,s2 = user_interface()
+    
+def module():
     token = fetchToken()
-    filename = 'setting1.xlsx'
     
     settings = read_settings(filename='setting.xlsx', sheet_name='settings')        
     parsed_data = read_data(filename='setting.xlsx',settings = settings , sheet_name='data')    
+    getters = {}
+    setters = {}
     getters = filling_getters(settings, parsed_data, getters )             
     setters = filling_setters(settings, setters, getters)
-    getters
     substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])            
     write_2_excel_parsed_data(parsed_data, settings )
 
-    parsed_data['parsed_response']
-    
-    
-    
     token = fetchToken()
     # quirks = {'mode': 'change', 'change': 'url', 'change_type': 1, 'start_chr':'0', 'step_chr':'1', 'stop_chr':'150' }
     quirks = {'mode': 'content', 'content': 'header','change_type': 1,'step':10, 'chr':'a', 'content_num': 100}
@@ -1395,12 +1409,5 @@ def __init__():
     token = fetchToken()
 
 
-    for p,v in parsed_data['parsed_response'].items():
-        print(p)
-        print(v)
-        
-
-    for p,v in parsed_data['response'].items():
-        print(p)
-        # print(v)
-        
+if __name__=="__main__":
+    init()
