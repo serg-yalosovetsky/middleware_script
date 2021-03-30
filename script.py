@@ -808,7 +808,6 @@ def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I4
 
 
 
-
 def reading_response_from_file(filename, parsed_data, point='', verb='' ):
     
     with open(filename, encoding='utf-8' ) as f:
@@ -888,8 +887,11 @@ def filling_setters(settings, setters, getters):
             print('io i1 ', i0, i1)
             if i0>=0 and i1>=0 :
                 print('set[i0+2:i1]', set[i0+2:i1])
-                print(set[:i0], getters[set[i0+2:i1]], set[i1+2:], sep='')
-                setters[set] = set[:i0] + getters[set[i0+2:i1]] + set[i1+2:]
+                try:
+                    print(set[:i0], getters[set[i0+2:i1]], set[i1+2:], sep='')
+                    setters[set] = set[:i0] + getters[set[i0+2:i1]] + set[i1+2:]
+                except Exception as e:
+                    print(e)
             else:
                 setters[set] = set
     return setters
@@ -924,52 +926,78 @@ def parse_dict(s, list_, parent=[], n=0, dic=0):
         dic -=1
     
 
-
 def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
 
     for p in settings['setter_inv']:
         print(p)
         key = list(settings['setter_inv'][p].keys())
-        lis = list(parsed_data['headers_value'].get(p, 0).keys())
-        for k in key:
-            print(f'key={key}, {k} in {lis}, {k in lis}')
-            if k in lis:
+        if p in parsed_data['headers_value']:
+                
+            lis = list(parsed_data['headers_value'].get(p, 0).keys())
+            for k in key:
+                print(f'key={key}, {k} in {lis}, {k in lis}')
+                if k in lis:
+                    print()
+                    try:
+                        parsed_data['headers_value'][p][k] = setters[settings['setter_inv'][p][k]] 
+                    except Exception as e:
+                        print(e)
+                    print()
                 print()
-                parsed_data['headers_value'][p][k] = setters[settings['setter_inv'][p][k]] 
-                print()
-            print()
 
     for p in settings['setter_inv']:
         print(p)
         key = list(settings['setter_inv'][p].keys())
-        lis = parsed_data['post_data'].get(p, 0).items()
-        if lis != 0:
-            for li_k, li_v in parsed_data['parsed_post_data'].get(p, 0).items():
-                # print('key')
-                # print(li_k)
-                # print(li_v)
-                try:
-                    _ = li_v.items()
-                    for l_k, l_v in li_v.items():
-                        try:
-                            _ = l_v.items()
-                            
-                            
-                            for _k, _v in l_v.items():
-                                if p=='getRelPhone':
-                                    print(f'|             {_v}     |{_k}')
-                                
-                                print(f'|point {p}, value {_v}, {_k} in {key}, {_k in key}')
-                                if _k in key:
-                                    print()
-                                    print("_k", _k)
-                                    # parsed_data['parsed_post_data'][p][_k] = setters[settings['setter_inv'][p][_k]] 
-                                    print ("parsed_data['parsed_post_data'][p][li_k][l_k][_k]", parsed_data['parsed_post_data'][p][li_k][l_k][_k]) 
-                                    print("setters[settings['setter_inv'][p][_k]]", settings['setter_inv'][p][_k], p, _k) 
-                                    print()
-                                print()
-                        except: pass
-                except: pass
+        if p in parsed_data['parsed_post_data']:
+                
+            lis = parsed_data['parsed_post_data'].get(p, 0).items()
+            if lis != 0:
+                for list_k, list_v in parsed_data['parsed_post_data'].get(p, 0).items():
+                    try:
+                        if list_k in key:
+                            parsed_data['parsed_post_data'][p][list_k] = setters[settings['setter_inv'][p][list_k]] 
+                            print()
+
+                        _ = list_v.items()
+                        for lis_k, lis_v in list_v.items():
+                            try:
+                                if lis_k in key:
+                                    parsed_data['parsed_post_data'][p][list_k][lis_k] = setters[settings['setter_inv'][p][lis_k]] 
+                        
+                                _ = lis_v.items()
+                                for li_k, li_v in lis_v.items():
+                                    
+                                    try:
+                                        if li_k in key:
+                                            parsed_data['parsed_post_data'][p][list_k][lis_k][li_k] = setters[settings['setter_inv'][p][li_k]] 
+                                    
+                                        _ = li_v.items()
+                                        for l_k, l_v in li_v.items():
+                                            try:
+                                                if l_k in key:
+                                                    parsed_data['parsed_post_data'][p][list_k][lis_k][li_k][l_k] = setters[settings['setter_inv'][p][l_k]] 
+                                                
+                                                _ = l_v.items()
+                                                for _k, _v in l_v.items():
+                                            
+                                                    # print(f'|point {p}, value {_v}, {_k} in {key}, {_k in key}')
+                                                    if _k in key:
+                                                        print()
+                                                        # print("_k", _k)
+                                                        try:
+                                                            parsed_data['parsed_post_data'][p][list_k][lis_k][li_k][l_k][_k] = setters[settings['setter_inv'][p][_k]] 
+                                                        except: pass    
+                                                        # print ("parsed_data['parsed_post_data'][p][li_k][l_k][_k]", parsed_data['parsed_post_data'][p][li_k][l_k][_k]) 
+                                                        # print("setters[settings['setter_inv'][p][_k]]", settings['setter_inv'][p][_k], p, _k) 
+                                                        print()
+                                            except: pass
+
+
+                                    except: pass
+                                    
+                                    
+                            except: pass
+                    except: pass
     return parsed_data
 
 
@@ -1276,7 +1304,49 @@ def list_directory():
         print(*files, sep='\n')
 
 
-def user_interface():
+def temp():
+    last_point = 'links_mw'
+    last_verb = 'get'
+    settings = read_settings(filename='setting.xlsx', sheet_name='settings')        
+    parsed_data = read_data(filename='setting.xlsx', settings = settings , sheet_name='data')    
+
+
+    str_json = wrapper_for_json_parse(parsed_data['response'][last_point][last_verb])
+    parsed_data['parsed_response'][last_point][last_verb]
+    token = fetchToken()
+    points = 'settings'
+    r = requests.get(url_creator(points), header_creator(points, token))
+    r.json()
+    filename = 'resp.txt'
+    filename = 'setting.xlsx'
+    parsed_data = reading_response_from_file(filename, parsed_data, point='', verb='' )
+    with open(filename, encoding='utf-8' ) as f:
+        for line in f.readlines():
+            for lin in line.split('/n'):
+                points = []
+                i = line.find('{')
+                for l in lin[:i].split():
+                    points.append(l)
+                # parsed_data['response'][points[0]][points[1]] = lin[i:]
+                temp = lin[i:]
+    a = wrapper_for_json_parse(temp)    
+    
+    for s,d in a.items():
+        print(s)
+        for f,g in d.items():
+            print(f)
+            try:
+                for h,j in g.items():
+                    print(h)
+            except:
+                pass
+
+
+
+
+
+
+def user_interface(parsed_data, settings):
     
     print('Интерфейс для программы тестирования')
     print('''Режимы работы: 
@@ -1285,17 +1355,17 @@ def user_interface():
     3. вывод текущих точек,
     4. вывод подробной информации о конкретной точке
     5. вывод текущей директории и список файлов
-    6. тестирование точек''')
-    if ui := input()=='1':
+    6. тестирование точек
+    7. выход''')
+    ui2 = ''
+    ui = input()
+    if ui =='1':
         not_file = 1
         while not_file:
-            ui2 = input('Введите имя файла, ентер для вывода списка файлов в текущей директории, exit для выхода\n')
+            ui2 = input('Введите имя файла, ентер для значения по умолчанию setting.xlsx\n')
             if  ui2 == '':
-                list_directory()
-            elif ui2 == 'exit':
-                not_file = 0
-                break
-            else:
+                ui2 = 'setting.xlsx'
+
                 not_file = 0
                 print(f'Чтение файла настроек {ui2}')
                 filename = ui2
@@ -1306,9 +1376,11 @@ def user_interface():
                 getters = filling_getters(settings, parsed_data, getters )             
                 setters = filling_setters(settings, setters, getters)
                 if len(getters)>0:
-                    parsed_data = substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])        
+                    try:
+                        parsed_data = substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])        
+                    except Exception as e:
+                        print(e)
 
-    
     if ui =='2':
         not_file = 1
         while not_file:
@@ -1326,8 +1398,12 @@ def user_interface():
 
     if ui =='3':
         print(parsed_data['points'])
+        print()
+        print()
+        
     if ui =='4':
         ui2 = input('Введите имя точки:\n')
+        print()
         print(f' точка: {ui2}')
         print(f'методы: {parsed_data["verbs"][ui2]}')
         print(f'url адрес: {parsed_data["url"][ui2]}')
@@ -1335,11 +1411,15 @@ def user_interface():
         print(f'данные, передаваемые на сервер: {parsed_data["parsed_post_data"][ui2]}')
         print(f'код ответа: {parsed_data["response_code"][ui2]}')
         print(f'ответ: {parsed_data["parsed_response"][ui2]}')
+        print()
+        print()
     if ui =='5':
         cwd, files = change_dir()
         print(f'Текущий путь: {cwd}')
         print('Список файлов: ')
         print(*files, sep='\n')
+        print()
+        print()
     if ui =='6':
         not_file = 1
         while not_file:
@@ -1356,10 +1436,11 @@ def user_interface():
                 print(f'Запись в файл {ui2}')
                 not_file = 0
                 filename = ui2
-                parsed_data = reading_response_from_file(filename, parsed_data, point='', verb='' )
-                print(f'Запись успешна')
                 write_2_excel_parsed_data(parsed_data, settings, filename=filename )
-    return ui, ui2
+                print(f'Запись успешна')
+        print()
+        print()
+    return ui, ui2, (parsed_data, settings)
         
     
             
@@ -1380,8 +1461,15 @@ def parse_for_argparser():
     return args 
 
 def init():
+    data = {}
+    settings = {}
     args = parse_for_argparser()
-    s,s2 = user_interface()
+    s = True
+    while s: 
+        s,s2, (data, settings) = user_interface(data, settings)
+        if s == '7':
+            s = False
+        
     
 def module():
     token = fetchToken()
@@ -1393,7 +1481,8 @@ def module():
     getters = filling_getters(settings, parsed_data, getters )             
     setters = filling_setters(settings, setters, getters)
     substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])            
-    write_2_excel_parsed_data(parsed_data, settings )
+    write_2_excel_parsed_data(parsed_data, settings, filename= 'response2.xlsx' )
+    settings
 
     token = fetchToken()
     # quirks = {'mode': 'change', 'change': 'url', 'change_type': 1, 'start_chr':'0', 'step_chr':'1', 'stop_chr':'150' }
