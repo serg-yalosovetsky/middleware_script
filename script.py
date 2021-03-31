@@ -210,7 +210,15 @@ def log_print(debug, n, *message):
     if debug>= n:
         print(*message)
 
- 
+def lg_print(*msg, log_l=0):
+    if 'debug' in globals():
+        if log_l>0:
+            if log_l>=debug:
+                print(*msg)
+        else:
+            if debug>6:
+                print(*msg)
+
 def gen_u(point, quirks, debug=0):
     if quirks['change'] == 'url':
         if quirks['mode'] == 'content':
@@ -354,10 +362,10 @@ def fetchToken(url=None, headers=None, mw = None):
         headers = {"Authorization": "Basic " + basic1,"Content-Type": "application/json"}
         headers2 = {"Authorization": "Basic c3ZjLXNpZWJlbC1tdzoxMjM0=","Content-Type": "application/x-www-form-urlencode"}
     # data = {'username' :'380952240016'}
-    print(url)
-    print(headers)
+    lg_print(url)
+    lg_print(headers)
     r = requests.post(url, headers = headers)#, data = data) 
-    print(r.status_code)
+    lg_print(r.status_code)
     json_response = r.json()
     return json_response['access_token']
 
@@ -379,15 +387,15 @@ def fetchPass(token = None, url=None, headers=None, mw = None):
         headers2 = {"Authorization": "Basic c3ZjLXNpZWJlbC1tdzoxMjM0’=","Content-Type": "application/x-www-form-urlencode"}
     data = {'username' :'380952240016', 'password' : token}
 
-    print(url)
-    print(headers)
+    lg_print(url)
+    lg_print(headers)
     r = requests.post(url, headers = headers, data = data) 
-    print(r.status_code)
+    lg_print(r.status_code)
     try:
         json_response = r.json()['access_token']
     except:
         json_response = r.text
-        print(json_response)
+        lg_print(json_response)
     return json_response
 
 
@@ -432,8 +440,8 @@ def checkArray(el): #0 str, 1 list, 2 dict, 3 listdict, 4 listlist, 5 dictlist, 
     if isType(el)<2: #isType(): -1 None, 0 if empty array, 1 if str int float, 2 if list, 3 if dict
         return 0
     for e in el:
-        # print('checkarray0',isType(e),type(e))
-        # print(e)
+        # lg_print('checkarray0',isType(e),type(e))
+        # lg_lg_print(e, log_l=2)
         if isType(el)==2: #list
             if isType(e)>=2: #list or dict
                 return isType(e) + 1
@@ -450,7 +458,7 @@ def parse_string(s):
         if c=='[':
             pass
         if c=='{':
-            print()
+            lg_print()
         # if 
 
 
@@ -460,7 +468,7 @@ def parse_str(s,n=0, dic=0, dense=0):
     if isType(s)==2:
         for c in s:
             yield from parse_str(c, n+1, dic, dense=dense)
-        print()
+        lg_print()
     if isType(s)==3:
         for c in s:
             yield (c,n+1,dic)
@@ -476,13 +484,13 @@ def check_if_filed_in_excluding(parent, field, point, settings, reverse=0):
             for m in settings['field of response']:
                 # if m == field or m in parent:
                 if m == field :
-                    print(1)
+                    lg_print(1)
                     return 1
                 elif m in parent:
-                    print(2)
+                    lg_print(2)
                     return 1
                 else:
-                    print(0)
+                    lg_print(0)
                     return 0
 
 
@@ -530,11 +538,11 @@ def check_if_cell_is_not_empty(s):
         else:
             return 0
     except Exception as e:
-        print(e)
+        lg_lg_print(e, log_l=2)
        
 
 def append_list_in_dict(dict_, list_, elem):
-    print(dict_, list_, elem)
+    lg_print(dict_, list_, elem)
     try:
         dict_[list_].append(elem)
     except:
@@ -544,7 +552,7 @@ def append_list_in_dict(dict_, list_, elem):
 
 
 def add_record_in_dict(dict_, key, key2, elem):
-    print(dict_, key, key2, elem)
+    lg_print(dict_, key, key2, elem)
     try:
         dict_[key][key2] = elem
     except:
@@ -636,7 +644,7 @@ def read_settings(filename, sheet_name='settings', diapasone=('A1', 'C100'), val
     mode = ''
     i = 0
     for *c, in cells:  
-        print(c[0].value,c[1].value,c[2].value)
+        lg_print(c[0].value,c[1].value,c[2].value)
                 
         if check_if_cell_is_not_empty(c[0].value):
 
@@ -698,7 +706,7 @@ def json_parse(s):
             s = s.replace("'", '"')
             str_json = yaml.load(s)
         except Exception as e:
-            print(e)
+            lg_print(e, log_l=2)
             str_json = 'json decode error, maybe unexpectend of string'
     return str_json
 
@@ -708,7 +716,7 @@ def wrapper_for_json_parse(value):
     try:
         str_json = json_parse(s)
     except Exception as e:
-        print(e)
+        lg_print(e, log_l=2)
         str_json = ''
     return str_json
         
@@ -737,7 +745,7 @@ def read_data(filename, settings='', sheet_name='__active', diapasone=('A1', 'I4
             cells = sheet[settings['diapasone'][0]: settings['diapasone'][1]]
             
     except Exception as e:
-        print('Неверный диапазон значений для парсинга')
+        lg_print('Неверный диапазон значений для парсинга', log_l=2)
     c = [0 for i in range(len(cells) )]
     parsed_data = {'points' : [], 'verbs' : {}, 'headers_name' : {}, 'headers_value' : {}, 'url' : {}, 
                    'post_data':{}, 'parsed_post_data':{}, 'response' : {}, 'parsed_response' : {}, 'response_code' : {}, 'token' :0}
@@ -839,27 +847,27 @@ def filling_getters(settings, parsed_data, getters ):
                                             for resp in parsed_data['parsed_response'][points][verbs][r][re][res]:
                                                 if isType(parsed_data['parsed_response'][points][verbs][r][re][res][resp]) >=2:
                                                     for respo in parsed_data['parsed_response'][points][verbs][r][re][res][resp]:
-                                                        if points == 'loginV2':print(respo)
+                                                        if points == 'loginV2':lg_print(respo)
                                                         if settings['getter'].get(points,0):
                                                             if respo in list(settings['getter_inv'][points].keys()):
                                                                 alias = list(settings['getter'][points].keys())[0]
                                                                 getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res][resp][respo]
                                                 else:
-                                                    if points == 'loginV2':print(resp)
+                                                    if points == 'loginV2':lg_print(resp)
                                                     
                                                     if settings['getter'].get(points,0):    
                                                         if resp in list(settings['getter_inv'][points].keys()):
                                                             alias = list(settings['getter'][points].keys())[0]
                                                             getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][resp]                   
                                         else:
-                                            if points == 'loginV2':print(res)
+                                            if points == 'loginV2':lg_print(res)
                                             
                                             if settings['getter'].get(points,0):    
                                                 if res in list(settings['getter_inv'][points].keys()):
                                                     alias = list(settings['getter'][points].keys())[0]
                                                     getters[alias] = parsed_data['parsed_response'][points][verbs][r][re][res]      
                                 else:
-                                    if points == 'loginV2':print(re)
+                                    if points == 'loginV2':lg_print(re)
                                     
                                     if settings['getter'].get(points,0):
                                         if re in list(settings['getter_inv'][points].keys()):
@@ -867,7 +875,7 @@ def filling_getters(settings, parsed_data, getters ):
                                             getters[alias] = parsed_data['parsed_response'][points][verbs][r][re]
  
                         else:
-                            if points == 'loginV2':print(r)
+                            if points == 'loginV2':lg_print(r)
                             
                             if settings['getter'].get(points,0):
                                 if r in list(settings['getter_inv'][points].keys()):
@@ -879,45 +887,45 @@ def filling_setters(settings, setters, getters):
     
     for sett in settings['setter']:
         for set in settings['setter'][sett]: 
-            print('set= ', set)
+            lg_print('set= ', set)
             var = settings['setter'][sett][set]
-            print('var= ', var)
+            lg_print('var= ', var)
             i0 = set.find('{{')
             i1 = set.find('}}')
-            print('io i1 ', i0, i1)
+            lg_print('io i1 ', i0, i1)
             if i0>=0 and i1>=0 :
-                print('set[i0+2:i1]', set[i0+2:i1])
+                lg_print('set[i0+2:i1]', set[i0+2:i1])
                 try:
-                    print(set[:i0], getters[set[i0+2:i1]], set[i1+2:], sep='')
+                    lg_print(set[:i0], getters[set[i0+2:i1]], set[i1+2:], sep='')
                     setters[set] = set[:i0] + getters[set[i0+2:i1]] + set[i1+2:]
                 except Exception as e:
-                    print(e)
+                    lg_print(e, log_l=2)
             else:
                 setters[set] = set
     return setters
  
 
 def parse_dict(s, list_, parent=[], n=0, dic=0):
-    print()
-    # print('s,list_', s,list_)
+    lg_print()
+    # lg_print('s,list_', s,list_)
     if s in list_:
-        print('||||parseDict', s, parent)
+        lg_print('||||parseDict', s, parent)
         yield s, parent
     if isType(s)<2:
-        # print(s)
+        # lg_print(s)
         # yield (s,list_, n,dic)
         yield '', parent
     if isType(s)==2:
         for c in s:
             yield from parse_dict(c, list_, parent, n+1, dic)
-        # print()
+        # lg_print()
     if isType(s)==3:
         for c in s:
             # yield (c,n+1,dic)
-            print('parseDict 0', c,'s[c]',s[c], 'par', parent)
+            lg_print('parseDict 0', c,'s[c]',s[c], 'par', parent)
             
             if c in list_:
-                print('||||parseDict', c, parent)
+                lg_print('||||parseDict', c, parent)
                 yield c, parent
             if isType( s[c]) >=2:    
                 parent0= copy.deepcopy(parent)
@@ -929,24 +937,24 @@ def parse_dict(s, list_, parent=[], n=0, dic=0):
 def substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value']):             
 
     for p in settings['setter_inv']:
-        print(p)
+        lg_print(p)
         key = list(settings['setter_inv'][p].keys())
         if p in parsed_data['headers_value']:
                 
             lis = list(parsed_data['headers_value'].get(p, 0).keys())
             for k in key:
-                print(f'key={key}, {k} in {lis}, {k in lis}')
+                lg_print(f'key={key}, {k} in {lis}, {k in lis}')
                 if k in lis:
-                    print()
+                    lg_print()
                     try:
                         parsed_data['headers_value'][p][k] = setters[settings['setter_inv'][p][k]] 
                     except Exception as e:
-                        print(e)
-                    print()
-                print()
+                        lg_print(e, log_l=2)
+                    lg_print()
+                lg_print()
 
     for p in settings['setter_inv']:
-        print(p)
+        lg_print(p)
         key = list(settings['setter_inv'][p].keys())
         if p in parsed_data['parsed_post_data']:
                 
@@ -956,7 +964,7 @@ def substitution_with_setters(settings, parsed_data, getters, setters, field_for
                     try:
                         if list_k in key:
                             parsed_data['parsed_post_data'][p][list_k] = setters[settings['setter_inv'][p][list_k]] 
-                            print()
+                            lg_print()
 
                         _ = list_v.items()
                         for lis_k, lis_v in list_v.items():
@@ -980,16 +988,16 @@ def substitution_with_setters(settings, parsed_data, getters, setters, field_for
                                                 _ = l_v.items()
                                                 for _k, _v in l_v.items():
                                             
-                                                    # print(f'|point {p}, value {_v}, {_k} in {key}, {_k in key}')
+                                                    # lg_print(f'|point {p}, value {_v}, {_k} in {key}, {_k in key}')
                                                     if _k in key:
-                                                        print()
-                                                        # print("_k", _k)
+                                                        lg_print()
+                                                        # lg_print("_k", _k)
                                                         try:
                                                             parsed_data['parsed_post_data'][p][list_k][lis_k][li_k][l_k][_k] = setters[settings['setter_inv'][p][_k]] 
                                                         except: pass    
                                                         # print ("parsed_data['parsed_post_data'][p][li_k][l_k][_k]", parsed_data['parsed_post_data'][p][li_k][l_k][_k]) 
-                                                        # print("setters[settings['setter_inv'][p][_k]]", settings['setter_inv'][p][_k], p, _k) 
-                                                        print()
+                                                        # lg_print("setters[settings['setter_inv'][p][_k]]", settings['setter_inv'][p][_k], p, _k) 
+                                                        lg_print()
                                             except: pass
 
 
@@ -1064,10 +1072,10 @@ def _write_post_data_to_excel( data, point='', filename='test.xlsx', verbose=10,
         str_resp_old=''
         counter=0
         border_prev = ''
-        print('init')
+        lg_print('init')
         while True:
             str_resp,shift_down,shift_right =next(gen)
-            print(str_resp)
+            lg_print(str_resp)
             shift_right+=y0
             if i==0:
                 shift_right_prev=shift_right
@@ -1080,7 +1088,7 @@ def _write_post_data_to_excel( data, point='', filename='test.xlsx', verbose=10,
             if shift_right>shift_right_prev:
                 i-=1
             checking = ''
-            print('postinit')
+            lg_print('postinit')
 
             if shift_down == n_prev and counter>0: #если уровень списка одинаков для текущего и предыдущего
                 if shift_right==shift_right_prev: #если уровень словаря одинаков для текущего и предыдущего
@@ -1094,7 +1102,7 @@ def _write_post_data_to_excel( data, point='', filename='test.xlsx', verbose=10,
                     worksheet.write(i, shift_right,str_resp, bd['border_no_bottom'])
                     border_prev = 'no top' #устанавливаем "без верхней " для текущей
                     counter+=1
-                    print('shift_down == n_prev and counter>0')
+                    lg_print('shift_down == n_prev and counter>0')
 
                 elif shift_right>shift_right_prev:
                     if border_prev == 'no top': #если для предыдущей клеточки установлена граница "без правой стороны", то устанавливаем "без верхней и правой"
@@ -1105,20 +1113,20 @@ def _write_post_data_to_excel( data, point='', filename='test.xlsx', verbose=10,
                     worksheet.write(i, shift_right,str(str_resp),bd['border_no_left'])
                     border_prev = 'no left'
                     counter+=1
-                    print('shift_right>shift_right_prev')
+                    lg_print('shift_right>shift_right_prev')
                 else:
                     # sett.write(i, d, str(s))
                     worksheet.write(i, shift_right,str(str_resp))
                     border_prev = ''
                     counter+=1
-                    print('shift_right>shift_right_prev else')
+                    lg_print('shift_right>shift_right_prev else')
 
             else:
                 # sett.write(i, d, str(s))
                 worksheet.write(i, shift_right,str(str_resp))
                 border_prev = ''
                 counter+=1
-                print('else else')
+                lg_print('else else')
 
             
             shift_right_prev = shift_right
@@ -1127,10 +1135,10 @@ def _write_post_data_to_excel( data, point='', filename='test.xlsx', verbose=10,
             n_prev = shift_down
             str_resp_old = str_resp
             i+=1
-            print('post init')
+            lg_print('post init')
 
     except Exception as e:
-        print(e)
+        lg_print(e, log_l=2)
     finally:
         if need_close:
             workbook.close()
@@ -1192,11 +1200,11 @@ def _write_response_to_excel(resp_old, resp_new,settings, point='', filename='te
             i+=1
             counter+=1
     except Exception as e:
-        print(e)
+        lg_print(e, log_l=2)
     finally:
         if need_close:
             workbook.close()
-    print(f'shift_down-x0+1 { shift_down_max+i-x0+1}, shift_right_max - y0 {shift_right_max-y0 +1}')
+    lg_print(f'shift_down-x0+1 { shift_down_max+i-x0+1}, shift_right_max - y0 {shift_right_max-y0 +1}')
 
     return (workbook, worksheet,  shift_down_max+i-x0, shift_right_max-y0 )
 
@@ -1206,10 +1214,10 @@ def wrapper(func, list_, ws, x,y,s, *args, **kwargs):
     lis, return_ = wrapper(worksheet_write_twice_shift, lis, worksheet, shift_down_max+i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point,checking=checking, settings=settings, x0=i, y0=y0-1) 
     '''
     if list_ != []:
-        print(list_)
+        lg_print(list_)
         return_ =func(ws, x,y,s *args,prev=list_[-1] ,**kwargs)
     else:
-        print('oops')
+        lg_print('oops')
     x = kwargs['val']
     list_.append([x,y,s])
     return list_, return_ ### DECOMMENT
@@ -1229,18 +1237,18 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                 break 
             worksheet.write( counter, point_counter, str(point))
             verb_counter = counter
-            print('log05')
+            lg_print('log05')
             for verb in parsed_data['verbs'][point]:
                 # worksheet.write( counter, point_counter+5, none_safe_str( parsed_data['post_data'][point].get(verb,'')) )
                 y_data_counter =0
                 data = parsed_data['parsed_post_data'][point].get(verb,'')
-                print('data')
-                print(data)
-                print('counter, point_couter', counter, point_counter+5)
-                print()
+                lg_print('data')
+                lg_print(data)
+                lg_print('counter, point_couter', counter, point_counter+5)
+                lg_print()
                 # post_counter=0
                 workbook,worksheet,post_counter, y_data_counter = _write_post_data_to_excel( data, verbose=3, current_worksheet=worksheet, workbook=workbook,x0=counter,y0=point_counter+5)
-                print('log0')
+                lg_print('log0')
                 worksheet.write( verb_counter, point_counter+1, str(verb))
                 try:
                     if verb=='post' and parsed_data['post_data'][point].get(verb,''):
@@ -1249,17 +1257,16 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                         r = requests.request(verb, parsed_data['url'][point][0], headers=parsed_data['headers_value'][point])
                     resp = r.json()
                 except Exception as e:
-                    print(e)
+                    lg_print(e, log_l=2)
                     resp = r.text
-                print('log1')
                 resp_counter = 0
-                print('parsed_data[response_code][point][verb]', point, verb, r )
+                lg_print('parsed_data[response_code][point][verb]', point, verb, r )
                 worksheet.write( verb_counter, point_counter+y_data_counter+7, str(parsed_data['response_code'][point][verb])+' '+str(r.status_code))
                 resp_old = parsed_data['parsed_response'][point][verb]
-                print(f'point {point} x0 = verb_counter {verb_counter}, y0= point_counter+y_data_counter+9 {point_counter+y_data_counter+9} type of resp_old {type(resp_old)} {isType(resp_old)}')
+                lg_print(f'point {point} x0 = verb_counter {verb_counter}, y0= point_counter+y_data_counter+9 {point_counter+y_data_counter+9} type of resp_old {type(resp_old)} {isType(resp_old)}')
                 workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( resp, resp_old,settings, point = point, shift_on_y=5, verbose=3,
                                                                                         current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+9)
-                print(f'after resp  {point} x0 = resp_counter {resp_counter}, y0= y_data_counter {y_data_counter} смещение {resp_counter}, {y_data_counter-point_counter+9}')
+                lg_print(f'after resp  {point} x0 = resp_counter {resp_counter}, y0= y_data_counter {y_data_counter} смещение {resp_counter}, {y_data_counter-point_counter+9}')
                 # workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
                 # workbook,worksheet,resp_counter, y =  write_to_excel2(resp, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+8)
                 # workbook,worksheet,resp_counter2, y2 =  write_to_excel2(parsed_data['response'][point][verb],  current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+6+8)
@@ -1286,15 +1293,15 @@ def change_dir(str_change_dir=''):
     return cwd, files
 
 def prompt(s):
-    print(s)
+    lg_print(s)
     ret = input()
     return ret
         
 def list_directory():
         cwd, files = change_dir()
-        print(f'Текущий путь: {cwd}')
-        print('Список файлов: ')
-        print(*files, sep='\n')
+        lg_print(f'Текущий путь: {cwd}')
+        lg_print('Список файлов: ')
+        lg_print(*files, sep='\n')
 
 
 def temp():
@@ -1325,12 +1332,12 @@ def temp():
     a = wrapper_for_json_parse(temp)    
     
     for s,d in a.items():
-        print(s)
+        lg_print(s)
         for f,g in d.items():
-            print(f)
+            lg_print(f)
             try:
                 for h,j in g.items():
-                    print(h)
+                    lg_print(h)
             except:
                 pass
 
@@ -1372,7 +1379,7 @@ def user_interface(parsed_data, settings):
                     try:
                         parsed_data = substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])        
                     except Exception as e:
-                        print(e)
+                        lg_print(e, log_l=2)
 
     if ui =='2':
         not_file = 1
