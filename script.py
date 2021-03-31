@@ -219,6 +219,7 @@ def lg_print(*msg, log_l=0):
             if debug>6:
                 print(*msg)
 
+
 def gen_u(point, quirks, debug=0):
     if quirks['change'] == 'url':
         if quirks['mode'] == 'content':
@@ -1345,7 +1346,6 @@ def temp():
 
 
 
-
 def user_interface(parsed_data, settings):
     
     print('Интерфейс для программы тестирования')
@@ -1356,7 +1356,8 @@ def user_interface(parsed_data, settings):
     4. вывод подробной информации о конкретной точке
     5. вывод текущей директории и список файлов
     6. тестирование точек
-    7. выход''')
+    7. выход
+    8. изменить уровень логирования''')
     ui2 = ''
     ui = input()
     if ui =='1':
@@ -1440,6 +1441,16 @@ def user_interface(parsed_data, settings):
                 print(f'Запись успешна')
         print()
         print()
+    if ui =='8':
+        not_file = 1
+        while not_file:
+            ui2 = input('Ввод уровня логирования\n')
+            if  int(ui2) >0:
+                not_file = 0
+                ui2 = int(ui2)
+   
+             
+        print()
     return ui, ui2, (parsed_data, settings)
         
     
@@ -1460,6 +1471,8 @@ def parse_for_argparser():
     print(args.l)
     return args 
 
+debug = 0
+
 def init():
     data = {}
     settings = {}
@@ -1469,6 +1482,10 @@ def init():
         s,s2, (data, settings) = user_interface(data, settings)
         if s == '7':
             s = False
+        if s == '8':
+            globals()['debug'] = s2
+            print(f'Уровень логирования {debug}')
+
     
 def module():
     token = fetchToken()
