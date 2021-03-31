@@ -1137,7 +1137,7 @@ def _write_post_data_to_excel( data, point='', filename='test.xlsx', verbose=10,
     return (workbook, worksheet, i-x0+1, shift_right_max - y0+1)
 
 
-def _write_response_to_excel(resp_old, resp_new, point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1, shift_on_y=3,x0=0,y0=0):
+def _write_response_to_excel(resp_old, resp_new, settings, point='', filename='test.xlsx', verbose=10, workbook='', current_worksheet='',new_worksheet='testings',border_draw=1, shift_on_y=3,x0=0,y0=0):
     '''Функция для красивого вывода ответа на запрос в файл екселя
     '''
 
@@ -1184,7 +1184,7 @@ def _write_response_to_excel(resp_old, resp_new, point='', filename='test.xlsx',
                 if settings['exclude or include fields'] == 'include':
                     checking = 'include'
             
-            worksheet_write_twice_shift(worksheet, shift_down_max+i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point,checking=checking, settings=settings, x0=i, y0=y0-1) #i,d
+            check = worksheet_write_twice_shift(worksheet, shift_down_max+i, shift_right,str_resp, shift_on_y, str_resp_old, parent, point,checking=checking, settings=settings, x0=i, y0=y0-1) #i,d
             counter+=1
             
             shift_right_prev = shift_right
@@ -1216,6 +1216,8 @@ def wrapper(func, list_, ws, x,y,s, *args, **kwargs):
 
 
 def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', sheet_name='response', point_ex='' ):
+    parsed_data = pd
+    settings = s
     try:
         workbook = xlsxwriter.Workbook(filename = filename)
         worksheet = workbook.add_worksheet(sheet_name)
@@ -1256,10 +1258,11 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                 print('parsed_data[response_code][point][verb]', point, verb, r )
                 worksheet.write( verb_counter, point_counter+y_data_counter+7, str(parsed_data['response_code'][point][verb])+' '+str(r.status_code))
                 resp_old = parsed_data['parsed_response'][point][verb]
+                print(f'point= {point}')
                 print(f'point {point} x0 = verb_counter {verb_counter}, y0= point_counter+y_data_counter+9 {point_counter+y_data_counter+9} type of resp_old {type(resp_old)} {isType(resp_old)}')
-                workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( resp, resp_old, point = point, shift_on_y=5, verbose=3,
+                workbook,worksheet,resp_counter, y_data_counter = _write_response_to_excel( resp, resp_old, settings, point = point, shift_on_y=5, verbose=3,
                                                                                         current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=point_counter+y_data_counter+9)
-                print(f'after resp  {point} x0 = resp_counter {resp_counter}, y0= y_data_counter {y_data_counter} смещение {resp_counter}, {y_data_counter-point_counter+9}')
+                print(f'after resp  {point} x0 = resp_counter {resp_counter}, y0= y_data_counter {y_data_counter} смещение {verb_counter}, {y_data_counter+point_counter+9}')
                 # workbook,worksheet,resp_counter, y =  write_to_excel2( resp, resp2, shift=4, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+y_data_counter+8)
                 # workbook,worksheet,resp_counter, y =  write_to_excel2(resp, current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+8)
                 # workbook,worksheet,resp_counter2, y2 =  write_to_excel2(parsed_data['response'][point][verb],  current_worksheet=worksheet, workbook=workbook,x0=verb_counter,y0=1+point_counter+6+8)
@@ -1273,15 +1276,7 @@ def write_2_excel_parsed_data(parsed_data, settings, filename='response.xlsx', s
                 header_counter += 1
             counter = max(counter+1, verb_counter, header_counter) + 1
     finally:
-        workbook.close()
-
-
-    
-    
-    
-    
-    
-    
+        workbook.close()    
 
 
 
@@ -1469,7 +1464,6 @@ def init():
         s,s2, (data, settings) = user_interface(data, settings)
         if s == '7':
             s = False
-        
     
 def module():
     token = fetchToken()
@@ -1481,9 +1475,12 @@ def module():
     getters = filling_getters(settings, parsed_data, getters )             
     setters = filling_setters(settings, setters, getters)
     substitution_with_setters(settings, parsed_data, getters, setters, field_for_subst=['post_data', 'headers_value'])            
-    write_2_excel_parsed_data(parsed_data, settings, filename= 'response2.xlsx' )
-    settings
-
+    write_2_excel_parsed_data(parsed_data, settings, filename= 'response.xlsx' )
+    parsed_data['parsed_response']['token']
+    s = settings
+    pd = parsed_data 
+    
+    
     token = fetchToken()
     # quirks = {'mode': 'change', 'change': 'url', 'change_type': 1, 'start_chr':'0', 'step_chr':'1', 'stop_chr':'150' }
     quirks = {'mode': 'content', 'content': 'header','change_type': 1,'step':10, 'chr':'a', 'content_num': 100}
